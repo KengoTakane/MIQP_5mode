@@ -150,11 +150,27 @@ E6 = np.concatenate([Eps1,-hmin+S,hmax-S,-hmin+S,-eps-S,Eps2,np.zeros(delta_n),n
 # Construct the problem.
 tm = 5
 
+H_0 = 62.9
+H_plusinf = 43.1
+H_minusinf = 124
+k_ref = 0.0019
+E_a = 170.604
+T_ref = 288.15
+Rg = 0.008314
+
+def k_rate(T):
+    return k_ref*np.exp((E_a/Rg)*(1/T_ref-1/T))
+
+def H(t,T):
+    return H_plusinf + (H_minusinf-H_plusinf)/(1+np.exp((k_rate(T)*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
+
+
 q_1, q_2 = cp.Variable((1,time+1)), cp.Variable((1,time+1))
 Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
 z = cp.Variable((delta_n, time))
 delta = cp.Variable((delta_n+gamma_n, time), integer=True)
-q_10, ta0, rh0 = 1100, 280, 50
+q_10, q_20 = 1100, 62.9
+ta0, rh0 = 280, 50
 w1, w2, w3 = 0.5, 0.5, 900
 
 cost = 0
@@ -162,9 +178,11 @@ constr = []
 for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z[:,k],
+    q_2[:,k+1] ,
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z[:,k] + E5@delta[:,k] <= E6
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
+cost += w3*cp.square(q_20 - q_2[:,tm])
 constr += [q_1[:,0] == q_10]
 constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
