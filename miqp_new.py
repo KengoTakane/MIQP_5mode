@@ -178,7 +178,7 @@ constr = []
 for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z[:,k],
-    q_2[:,k+1] ,
+    q_2[:,k] == H(k,Ta[:,k]),
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z[:,k] + E5@delta[:,k] <= E6
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
