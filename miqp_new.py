@@ -1,5 +1,6 @@
 import cvxpy as cp
 import numpy as np
+from sympy import exp
 import cplex
 import docplex
 from scipy.linalg import block_diag
@@ -159,10 +160,10 @@ T_ref = 288.15
 Rg = 0.008314
 
 def k_rate(T):
-    return k_ref*np.exp((E_a/Rg)*(1/T_ref-1/T))
+    return k_ref*exp((E_a/Rg)*(1/T_ref-1/T))
 
 def H(t,T):
-    return H_plusinf + (H_minusinf-H_plusinf)/(1+np.exp((k_rate(T)*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
+    return H_plusinf + (H_minusinf-H_plusinf)/(1+exp(((k_ref*exp((E_a/Rg)*(1/T_ref-1/T)))*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
 
 
 q_1, q_2 = cp.Variable((1,time+1)), cp.Variable((1,time+1))
@@ -173,12 +174,13 @@ q_10, q_20 = 1100, 62.9
 ta0, rh0 = 280, 50
 w1, w2, w3 = 0.5, 0.5, 900
 
+
 cost = 0
 constr = []
 for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z[:,k],
-    q_2[:,k] == H(k,Ta[:,k]),
+    q_2[:,k] == H_plusinf + (H_minusinf-H_plusinf)/(1+cp.exp(((k_ref*cp.exp((E_a/Rg)*(1/T_ref-1/Ta[:,k])))*k)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf)),
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z[:,k] + E5@delta[:,k] <= E6
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
