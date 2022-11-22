@@ -172,7 +172,7 @@ z = cp.Variable((delta_n, time))
 delta = cp.Variable((delta_n+gamma_n, time), integer=True)
 q_10, q_20 = 1100, 62.9
 ta0, rh0 = 280, 50
-w1, w2, w3 = 0.5, 0.5, 900
+w1, w2, w3, w4 = 0.5, 0.5, 900, 10
 
 
 cost = 0
@@ -180,12 +180,12 @@ constr = []
 for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z[:,k],
-    q_2[:,k] == H_plusinf + (H_minusinf-H_plusinf)/(1+cp.exp(((k_ref*cp.exp((E_a/Rg)*(1/T_ref-1/Ta[:,k])))*k)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf)),
+    q_2[:,k] == H_plusinf + (H_minusinf-H_plusinf)/(1+cp.exp(((k_ref*cp.exp((E_a/Rg)*((1/T_ref)-(cp.inv_pos(Ta[:,k])))))*k)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf)),
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z[:,k] + E5@delta[:,k] <= E6
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
-cost += w3*cp.square(q_20 - q_2[:,tm])
-constr += [q_1[:,0] == q_10]
+cost += w4*cp.abs(q_20 - q_2[:,tm])
+constr += [q_1[:,0] == q_10, q_2[:,0] == q_20]
 constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 
