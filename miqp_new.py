@@ -175,13 +175,17 @@ ta0, rh0 = 280, 50
 w1, w2, w3, w4 = 0.5, 0.5, 900, 10
 
 
+a = (k_rate(Ta_min)-k_rate(Ta_max))/(Ta_max-Ta_min)
+b = k_rate(Ta_min)-a*Ta_min
+
+
 cost = 0
 constr = []
 for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z[:,k],
     # q_2[:,k] == H_plusinf + (H_minusinf-H_plusinf)/(1+cp.exp(((k_ref*cp.exp((E_a/Rg)*((1/T_ref)-(cp.inv_pos(Ta[:,k])))))*k)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf)),
-    q_2[:,k] == H_plusinf + (H_minusinf-H_plusinf)/(1+cp.exp(((k_ref*cp.exp((E_a/Rg)*(T_ref-Ta[:,k])))*k)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf)),
+    q_2[:,k] == H_plusinf + (H_minusinf-H_plusinf)/(1+cp.exp(((a*Ta[:,k]+b)*k)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf)),
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z[:,k] + E5@delta[:,k] <= E6
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
