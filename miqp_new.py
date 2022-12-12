@@ -422,7 +422,7 @@ E6_Enz = np.concatenate([Eps1,-hmin_Enz+S_Enz,hmax_Enz-S_Enz,-hmin_Enz+S_Enz,-ep
 
 
 # Construct the problem.
-tm = 5
+tm = 2
 
 H_0 = 62.9
 H_plusinf = 43.1
