@@ -473,7 +473,7 @@ constr += [q_1[:,0] == q_10, q_2[:,0] == q_20, q_3[:,0] == q_30]
 constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 
-
+print(cp.installed_solvers())
 objective = cp.Minimize(cost)
 prob = cp.Problem(objective, constr)
 prob.solve(solver=cp.CPLEX, verbose=True)
