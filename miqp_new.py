@@ -452,7 +452,7 @@ for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z_1[:,k],
     q_2[:,k+1] == One@z_2[:,k],
-    q_3[:,k+1] == One@z_3[:,k],
+    # q_3[:,k+1] == One@z_3[:,k],
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
     E1_H@q_2[:,k] + E2_H@q_3[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H,
     # E1_Enz@q_2[:,k] + E2_Enz@q_3[:,k] + E3_Enz@Ta[:,k] + E4_Enz@z_3[:,k] + E5_Enz@delta_3[:,k] <= E6_Enz,
