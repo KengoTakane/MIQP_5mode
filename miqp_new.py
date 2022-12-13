@@ -10,17 +10,11 @@ import matplotlib.pyplot as plt
 
 # Problem data.
 # np.random.seed(3)
-s, time = 5, 10
+s = 5
 delta_n, gamma_n = 5, 10
-qf = 1000
-Ta_max = 298
-Ta_min = 278
-Rh_max = 95
-Rh_min = 30
+
 # T0 = np.random.randint(Ta_min,Ta_max,(time,1))
 # Rh0 = np.random.randint(Rh_min,Rh_max,(time,1))
-T0 = np.random.uniform(Ta_min,Ta_max,(1,time))
-Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 
 ################################################################################
@@ -140,8 +134,8 @@ Eps2 = np.array([0,0,0,0,1,0,0,0,1,1,0,0,1,1,1,0,1,1,1,1])
 One = np.ones((1,delta_n))
 I = np.eye(delta_n)
 Zero = np.zeros(delta_n)
-zero = np.stack(([Zero]*(time-1)), axis = 0)
-beta = np.concatenate([zero,One], 0).flatten()
+# zero = np.stack(([Zero]*(time-1)), axis = 0)
+# beta = np.concatenate([zero,One], 0).flatten()
 
 E1 = np.concatenate([np.zeros((2,1)),-Q,Q,-Q,Q,np.zeros((20+delta_n+delta_n,1)),A,-A], 0)
 E2 = np.concatenate([np.zeros((2,1)),-T,T,-T,T,np.zeros((20+delta_n+delta_n,1)),B,-B], 0)
@@ -274,8 +268,8 @@ Eps2 = np.array([0,0,0,0,1,0,0,0,1,1,0,0,1,1,1,0,1,1,1,1])
 One = np.ones((1,delta_n))
 I = np.eye(delta_n)
 Zero = np.zeros(delta_n)
-zero = np.stack(([Zero]*(time-1)), axis = 0)
-beta = np.concatenate([zero,One], 0).flatten()
+# zero = np.stack(([Zero]*(time-1)), axis = 0)
+# beta = np.concatenate([zero,One], 0).flatten()
 
 E1_H = np.concatenate([np.zeros((2,1)),-Q_H,Q_H,-Q_H,Q_H,np.zeros((20+delta_n+delta_n,1)),A_H,-A_H], 0)
 E2_H = np.concatenate([np.zeros((2,1)),-T_H,T_H,-T_H,T_H,np.zeros((20+delta_n+delta_n,1)),B_H,-B_H], 0)
@@ -406,8 +400,8 @@ Eps2 = np.array([0,0,0,0,1,0,0,0,1,1,0,0,1,1,1,0,1,1,1,1])
 One = np.ones((1,delta_n))
 I = np.eye(delta_n)
 Zero = np.zeros(delta_n)
-zero = np.stack(([Zero]*(time-1)), axis = 0)
-beta = np.concatenate([zero,One], 0).flatten()
+# zero = np.stack(([Zero]*(time-1)), axis = 0)
+# beta = np.concatenate([zero,One], 0).flatten()
 
 E1_Enz = np.concatenate([np.zeros((2,1)),-Q_Enz,Q_Enz,-Q_Enz,Q_Enz,np.zeros((20+delta_n+delta_n,1)),A_Enz,-A_Enz], 0)
 E2_Enz = np.concatenate([np.zeros((2,1)),-T_Enz,T_Enz,-T_Enz,T_Enz,np.zeros((20+delta_n+delta_n,1)),B_Enz,-B_Enz], 0)
@@ -422,7 +416,7 @@ E6_Enz = np.concatenate([Eps1,-hmin_Enz+S_Enz,hmax_Enz-S_Enz,-hmin_Enz+S_Enz,-ep
 
 
 # Construct the problem.
-tm = 6
+tm, time = 3, 5
 
 H_0 = 62.9
 H_plusinf = 43.1
@@ -432,14 +426,14 @@ E_a = 170.604
 T_ref = 288.15
 Rg = 0.008314
 
+Ta_min, Ta_max = 278, 298
+Rh_min, Rh_max = 30, 95
 H_min, H_max = 42, H_0
 Enz_min, Enz_max = 61, 80
+qf = 1000
 
-def k_rate(T):
-    return k_ref*exp((E_a/Rg)*(1/T_ref-1/T))
-
-def H(t,T):
-    return H_plusinf + (H_minusinf-H_plusinf)/(1+exp(((k_ref*exp((E_a/Rg)*(1/T_ref-1/T)))*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
+T0 = np.random.uniform(Ta_min,Ta_max,(1,time))
+Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 
 #### q_2:H(t), q_3:Enz(t) とする ####
@@ -449,11 +443,7 @@ z_1, z_2, z_3 = cp.Variable((delta_n, time)), cp.Variable((delta_n, time)), cp.V
 delta_1, delta_2, delta_3 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min
-w1, w2, w3, w4 = 0.5, 0.5, 900, 50
-
-
-a = (k_rate(Ta_min)-k_rate(Ta_max))/(Ta_max-Ta_min)
-b = k_rate(Ta_min)-a*Ta_min
+w1, w2, w3, w4 = 5, 5, 90, 50
 
 
 cost = 0
