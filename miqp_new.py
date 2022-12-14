@@ -416,7 +416,7 @@ E6_Enz = np.concatenate([Eps1,-hmin_Enz+S_Enz,hmax_Enz-S_Enz,-hmin_Enz+S_Enz,-ep
 
 
 # Construct the problem.
-tm, time = 6, 10
+tm, time = 10, 20
 
 H_0 = 62.9
 H_plusinf = 43.1
@@ -443,7 +443,7 @@ z_1, z_2, z_3 = cp.Variable((delta_n, time)), cp.Variable((delta_n, time)), cp.V
 delta_1, delta_2, delta_3 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min
-w1, w2, w3, w4 = 5, 5, 900, 50
+w1, w2, w3, w4 = 5, 5, 900, 900
 
 
 cost = 0
@@ -452,10 +452,10 @@ for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z_1[:,k],
     q_2[:,k+1] == One@z_2[:,k],
-    # q_3[:,k+1] == One@z_3[:,k],
+    q_3[:,k+1] == One@z_3[:,k],
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
     E1_H@q_2[:,k] + E2_H@q_3[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H,
-    # E1_Enz@q_2[:,k] + E2_Enz@q_3[:,k] + E3_Enz@Ta[:,k] + E4_Enz@z_3[:,k] + E5_Enz@delta_3[:,k] <= E6_Enz,
+    E1_Enz@q_2[:,k] + E2_Enz@q_3[:,k] + E3_Enz@Ta[:,k] + E4_Enz@z_3[:,k] + E5_Enz@delta_3[:,k] <= E6_Enz,
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
 cost += w4*cp.square(q_20 - q_2[:,tm])
@@ -469,7 +469,8 @@ prob = cp.Problem(objective, constr)
 prob.solve(solver=cp.CPLEX, verbose=True)
 print("Status: ", prob.status)
 print("The optimal value is\n", prob.value)
-print('q:\n', q_1.value)
+print('q_1:\n', q_1.value)
+print('q_2:\n', q_2.value)
 print('Ta:\n', Ta.value)
 print('Rh:\n', Rh.value)
 print('delta_1:\n', delta_1.value)
