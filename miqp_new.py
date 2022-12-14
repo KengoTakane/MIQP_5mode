@@ -1,8 +1,8 @@
 import cvxpy as cp
 import numpy as np
 from sympy import exp
-import cplex
-import docplex
+# import cplex
+# import docplex
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 
