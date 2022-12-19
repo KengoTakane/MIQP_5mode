@@ -341,7 +341,7 @@ for k in range(time):
     constr += [q_1[:,k+1] == One@z_1[:,k],
     q_2[:,k+1] == One@z_2[:,k],
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
-    E1_H@q_2[:,k] + E2_H@q_3[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
+    E1_H@q_2[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
 cost += w4*cp.square(q_20 - q_2[:,tm])
