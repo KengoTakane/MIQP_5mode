@@ -294,10 +294,9 @@ Eps2 = np.array([0,0,0,0,1,0,0,0,1,1,0,0,1,1,1,0,1,1,1,1])
 One_H = np.concatenate((np.eye(2),np.eye(2),np.eye(2),np.eye(2),np.eye(2)),axis=1)
 I = np.eye(2*delta_n)
 
-E1_H = np.concatenate([np.zeros((2,2)),-QT_H,QT_H,-QT_H,QT_H,np.zeros((20+delta_n+delta_n,2)),AB_H,-AB_H], 0)
-E2_H = np.concatenate([np.zeros((2,1)),-T_H,T_H,-T_H,T_H,np.zeros((20+delta_n+delta_n,1)),B_H,-B_H], 0)
-E3_H = np.concatenate([np.zeros((2,1)),-R_H,R_H,-R_H,R_H,np.zeros((20+delta_n+delta_n,1)),C_H,-C_H], 0)
-E4_H = np.concatenate([np.zeros((2+gamma_n+gamma_n+gamma_n+gamma_n+20,delta_n)),-I,I,-I,I], 0)
+E1_H = np.concatenate([np.zeros((2,2)),-QT_H,QT_H,-QT_H,QT_H,np.zeros((20+2*delta_n+2*delta_n,2)),AB_H,-AB_H], 0)
+E3_H = np.concatenate([np.zeros((2,1)),-R_H,R_H,-R_H,R_H,np.zeros((20+2*delta_n+2*delta_n,1)),C_H,-C_H], 0)
+E4_H = np.concatenate([np.zeros((2+gamma_n+gamma_n+gamma_n+gamma_n+20,2*delta_n)),-I,I,-I,I], 0)
 E5_H = np.concatenate([Gamma1,np.zeros((gamma_n+gamma_n,delta_n+gamma_n)),-hmin_H_hat,-hmax_H_hat-eps_hat,Gamma2,gmin_H_hat,-gmax_H_hat,gmax_H_hat,-gmin_H_hat], 0)
 E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.zeros(delta_n),np.zeros(delta_n),gmax_H-D_H,-gmin_H+D_H], 0)
 
