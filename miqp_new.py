@@ -293,3 +293,73 @@ Gamma2 = np.concatenate([Gamma2_first,Gamma2_second], 1)
 Eps2 = np.array([0,0,0,0,1,0,0,0,1,1,0,0,1,1,1,0,1,1,1,1])
 One_H = np.concatenate((np.eye(2),np.eye(2),np.eye(2),np.eye(2),np.eye(2)),axis=1)
 I = np.eye(2*delta_n)
+
+E1_H = np.concatenate([np.zeros((2,2)),-QT_H,QT_H,-QT_H,QT_H,np.zeros((20+delta_n+delta_n,2)),AB_H,-AB_H], 0)
+E2_H = np.concatenate([np.zeros((2,1)),-T_H,T_H,-T_H,T_H,np.zeros((20+delta_n+delta_n,1)),B_H,-B_H], 0)
+E3_H = np.concatenate([np.zeros((2,1)),-R_H,R_H,-R_H,R_H,np.zeros((20+delta_n+delta_n,1)),C_H,-C_H], 0)
+E4_H = np.concatenate([np.zeros((2+gamma_n+gamma_n+gamma_n+gamma_n+20,delta_n)),-I,I,-I,I], 0)
+E5_H = np.concatenate([Gamma1,np.zeros((gamma_n+gamma_n,delta_n+gamma_n)),-hmin_H_hat,-hmax_H_hat-eps_hat,Gamma2,gmin_H_hat,-gmax_H_hat,gmax_H_hat,-gmin_H_hat], 0)
+E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.zeros(delta_n),np.zeros(delta_n),gmax_H-D_H,-gmin_H+D_H], 0)
+
+
+
+
+# Construct the problem.
+tm, time = 6, 10
+
+H_0 = 62.9
+H_plusinf = 43.1
+H_minusinf = 124
+k_ref = 0.0019
+E_a = 170.604
+T_ref = 288.15
+Rg = 0.008314
+
+Ta_min, Ta_max = 278, 298
+Rh_min, Rh_max = 30, 95
+H_min, H_max = 42, H_0
+Enz_min, Enz_max = 61, 80
+qf = 1000
+
+T0 = np.random.uniform(Ta_min,Ta_max,(1,time))
+Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
+
+
+#### q_2:H(t), q_3:Enz(t) とする ####
+q_1, q_2, q_3 = cp.Variable((1,time+1)), cp.Variable((1,time+1)), cp.Variable((1,time+1))
+Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
+z_1, z_2, z_3 = cp.Variable((delta_n, time)), cp.Variable((delta_n, time)), cp.Variable((delta_n, time))
+delta_1, delta_2, delta_3 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
+ta0, rh0 = 280, 50
+q_10, q_20, q_30 = 1100, H_0, Enz_min
+w1, w2, w3, w4 = 5, 5, 900, 50
+
+
+cost = 0
+constr = []
+for k in range(time):
+    cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
+    constr += [q_1[:,k+1] == One@z_1[:,k],
+    q_2[:,k+1] == One@z_2[:,k],
+    E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
+    E1_H@q_2[:,k] + E2_H@q_3[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
+    ]
+cost += w3*cp.square(q_10 - q_1[:,time])
+cost += w4*cp.square(q_20 - q_2[:,tm])
+constr += [q_1[:,0] == q_10, q_2[:,0] == q_20]
+constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+
+
+print(cp.installed_solvers())
+objective = cp.Minimize(cost)
+prob = cp.Problem(objective, constr)
+prob.solve(solver=cp.CPLEX, verbose=True)
+print("Status: ", prob.status)
+print("The optimal value is\n", prob.value)
+print('q_1:\n', q_1.value)
+print('q_2:\n', q_2.value)
+print('Ta:\n', Ta.value)
+print('Rh:\n', Rh.value)
+print('delta_1:\n', delta_1.value)
+print('delta_2:\n', delta_2.value)
+# print('delta_3:\n', delta_3.value)
