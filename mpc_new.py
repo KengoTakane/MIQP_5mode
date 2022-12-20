@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 
 # Problem data.
 # np.random.seed(3)
-s = 5
 delta_n, gamma_n = 5, 10
 delta_t = 1
 
@@ -305,7 +304,10 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 
 
 # Construct the problem.
-tm, time = 10, 20
+
+# s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
+s, time, N = 5, 20, 5
+tm = 10
 
 H_0 = 62.9
 H_plusinf = 43.1
@@ -326,28 +328,48 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 
 #### q_2:H(t), q_3:Enz(t) とする ####
-q_1, q_2 = cp.Variable((1,time+1)), cp.Variable((2,time+1))
-Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
-z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
-delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
+
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min
 w1, w2, w3, w4 = 5, 5, 800, 1000
 
 
-cost = 0
-constr = []
-for k in range(time):
-    cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
-    constr += [q_1[:,k+1] == One@z_1[:,k],
-    q_2[:,k+1] == One_H@z_2[:,k],
-    E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
-    E1_H@q_2[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
-    ]
-cost += w3*cp.square(q_10 - q_1[:,time])
-cost += w4*cp.square(q_20 - q_2[0,tm])
-constr += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30]
-constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros(time+1), np.zeros(time), np.zeros(time)
+q_1star[0], q_2star[0] = q_10, q_20
+
+
+for j in range(time):
+    cost = 0
+    constr = []
+    t = 0
+    q_1, q_2, Ta, Rh = cp.Variable((1,N+1)), cp.Variable((2,N+1)), cp.Variable((1,N)), cp.Variable((1,N))
+    z_1, z_2 = cp.Variable((delta_n, N)), cp.Variable((2*delta_n, N))
+    delta_1, delta_2 = cp.Variable((delta_n+gamma_n, N), integer=True), cp.Variable((delta_n+gamma_n, N), integer=True)
+    for k in range(j,j+N):
+        # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
+        cost += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
+        constr += [q_1[:,t+1] == One@z_1[:,t],
+        q_2[:,t+1] == One_H@z_2[:,t],
+        E1@q_1[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z_1[:,t] + E5@delta_1[:,t] <= E6,
+        E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
+        ]
+        t = t+1
+    cost += w3*cp.square(q_1star[j] - q_1[:,N])
+    cost += w4*cp.square(q_2star[j] - q_2[0,N])
+    constr += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30]
+    constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+    objective = cp.Minimize(cost)
+    prob = cp.Problem(objective, constr)
+    prob.solve(solver=cp.CPLEX, verbose=True)
+    Ta_star[j] = Ta[:,0].value
+    Rh_star[j] = Rh[:,0].value
+    q_star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
+    print("j=",j)
+    print("q_star(j+1):",q_star[j+1])
+    print("Ta_star:",Ta.value)
+    print("Rh_star",Rh.value)
+    print("Ta_out:", T0)
+    print("Rh_out:", Rh0)
 
 
 print(cp.installed_solvers())
