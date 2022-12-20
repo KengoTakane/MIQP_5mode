@@ -342,7 +342,8 @@ for j in range(time):
     cost = 0
     constr = []
     t = 0
-    q_1, q_2, Ta, Rh = cp.Variable((1,N+1)), cp.Variable((2,N+1)), cp.Variable((1,N)), cp.Variable((1,N))
+    q_1, q_2 = cp.Variable((1,N+1)), cp.Variable((2,N+1))
+    Ta, Rh = cp.Variable((1,N)), cp.Variable((1,N))
     z_1, z_2 = cp.Variable((delta_n, N)), cp.Variable((2*delta_n, N))
     delta_1, delta_2 = cp.Variable((delta_n+gamma_n, N), integer=True), cp.Variable((delta_n+gamma_n, N), integer=True)
     for k in range(j,j+N):
