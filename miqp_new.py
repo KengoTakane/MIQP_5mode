@@ -304,7 +304,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 
 
 # Construct the problem.
-tm, time = 6, 10
+tm, time = 10, 20
 
 H_0 = 62.9
 H_plusinf = 43.1
@@ -325,13 +325,13 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 
 #### q_2:H(t), q_3:Enz(t) とする ####
-q_1, q_2, q_3 = cp.Variable((1,time+1)), cp.Variable((1,time+1)), cp.Variable((1,time+1))
+q_1, q_2 = cp.Variable((1,time+1)), cp.Variable((2,time+1))
 Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
-z_1, z_2, z_3 = cp.Variable((delta_n, time)), cp.Variable((delta_n, time)), cp.Variable((delta_n, time))
-delta_1, delta_2, delta_3 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
+z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
+delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min
-w1, w2, w3, w4 = 5, 5, 900, 50
+w1, w2, w3 = 5, 5, 900
 
 
 cost = 0
@@ -339,12 +339,12 @@ constr = []
 for k in range(time):
     cost += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr += [q_1[:,k+1] == One@z_1[:,k],
-    q_2[:,k+1] == One@z_2[:,k],
+    q_2[:,k+1] == One_H@z_2[:,k],
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
     E1_H@q_2[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
-cost += w4*cp.square(q_20 - q_2[:,tm])
+cost += w3*cp.square(q_20 - q_2[:,tm])
 constr += [q_1[:,0] == q_10, q_2[:,0] == q_20]
 constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
