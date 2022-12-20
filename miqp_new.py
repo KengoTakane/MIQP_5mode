@@ -331,7 +331,7 @@ z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
 delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min
-w1, w2, w3 = 5, 5, 900
+w1, w2, w3, w4 = 5, 5, 800, 1000
 
 
 cost = 0
@@ -344,8 +344,8 @@ for k in range(time):
     E1_H@q_2[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
-cost += w3*cp.square(q_20 - q_2[:,tm])
-constr += [q_1[:,0] == q_10, q_2[:,0] == q_20]
+cost += w4*cp.square(q_20 - q_2[0,tm])
+constr += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30]
 constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 
