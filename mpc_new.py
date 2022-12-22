@@ -306,8 +306,8 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 # Construct the problem.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
-s, time, N = 5, 20, 5
-tm = 10
+s, time, N = 5, 25, 5
+tm, tf = 9, 20
 
 H_0 = 62.9
 H_plusinf = 43.1
@@ -339,6 +339,48 @@ q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
 
 
 for j in range(time):
+    if j <= tf:
+        cost = 0
+        constr = []
+        t = 0
+        q_1, q_2 = cp.Variable((1,N+1)), cp.Variable((2,N+1))
+        Ta, Rh = cp.Variable((1,N)), cp.Variable((1,N))
+        z_1, z_2 = cp.Variable((delta_n, N)), cp.Variable((2*delta_n, N))
+        delta_1, delta_2 = cp.Variable((delta_n+gamma_n, N), integer=True), cp.Variable((delta_n+gamma_n, N), integer=True)
+        for k in range(j,j+N):
+            # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
+            cost += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
+            constr += [q_1[:,t+1] == One@z_1[:,t],
+            q_2[:,t+1] == One_H@z_2[:,t],
+            E1@q_1[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z_1[:,t] + E5@delta_1[:,t] <= E6,
+            E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
+            ]
+            t = t+1
+        cost += w3*cp.square(q_1star[j] - q_1[:,N])
+        if j <= tm:
+            cost += w4*cp.square(q_2star[0,j] - q_2[0,N])
+        constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
+        # constr += [q_1[:,N] >= , q_2[0,N] >= ]
+        constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+        objective = cp.Minimize(cost)
+        prob = cp.Problem(objective, constr)
+        prob.solve(solver=cp.CPLEX, verbose=False)
+        Ta_star[j] = Ta[:,0].value
+        Rh_star[j] = Rh[:,0].value
+        q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
+        # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
+        print("j=",j)
+        print("q_1star(j+1):",q_1star[j+1])
+        print("q_2star(j+1):",q_2star[:,j+1])
+        # print("Ta_star:",Ta.value)
+        # print("Rh_star",Rh.value)
+        # print("Ta_out:", T0)
+        # print("Rh_out:", Rh0)
+
+
+
+"""
+for j in range(time):
     cost = 0
     constr = []
     t = 0
@@ -363,7 +405,7 @@ for j in range(time):
     constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
     objective = cp.Minimize(cost)
     prob = cp.Problem(objective, constr)
-    prob.solve(solver=cp.CPLEX, verbose=True)
+    prob.solve(solver=cp.CPLEX, verbose=False)
     Ta_star[j] = Ta[:,0].value
     Rh_star[j] = Rh[:,0].value
     q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
@@ -371,10 +413,12 @@ for j in range(time):
     print("j=",j)
     print("q_1star(j+1):",q_1star[j+1])
     print("q_2star(j+1):",q_2star[:,j+1])
-    print("Ta_star:",Ta.value)
-    print("Rh_star",Rh.value)
-    print("Ta_out:", T0)
-    print("Rh_out:", Rh0)
+    # print("Ta_star:",Ta.value)
+    # print("Rh_star",Rh.value)
+    # print("Ta_out:", T0)
+    # print("Rh_out:", Rh0)
+"""
+
 
 
 print(cp.installed_solvers())
