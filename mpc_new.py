@@ -334,8 +334,8 @@ q_10, q_20, q_30 = 1100, H_0, Enz_min
 w1, w2, w3, w4 = 5, 5, 800, 1000
 
 
-q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros(time+1), np.zeros(time), np.zeros(time)
-q_1star[0], q_2star[0] = q_10, q_20
+q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
+q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
 
 
 for j in range(time):
@@ -357,16 +357,19 @@ for j in range(time):
         t = t+1
     cost += w3*cp.square(q_1star[j] - q_1[:,N])
     cost += w4*cp.square(q_2star[j] - q_2[0,N])
-    constr += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30]
+    constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
+    # constr += [q_1[:,N] >= , q_2[0,N] >= ]
     constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
     objective = cp.Minimize(cost)
     prob = cp.Problem(objective, constr)
     prob.solve(solver=cp.CPLEX, verbose=True)
     Ta_star[j] = Ta[:,0].value
     Rh_star[j] = Rh[:,0].value
-    q_star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
+    q_1star[j+1], q_2star[:,j+1] = q_1[0,1], q_2[:,1]
+    # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
     print("j=",j)
-    print("q_star(j+1):",q_star[j+1])
+    print("q_1star(j+1):",q_1star[j+1])
+    print("q_2star(j+1):",q_2star[:,j+1])
     print("Ta_star:",Ta.value)
     print("Rh_star",Rh.value)
     print("Ta_out:", T0)
