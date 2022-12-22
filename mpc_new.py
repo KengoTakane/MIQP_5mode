@@ -356,7 +356,8 @@ for j in range(time):
         ]
         t = t+1
     cost += w3*cp.square(q_1star[j] - q_1[:,N])
-    cost += w4*cp.square(q_2star[j] - q_2[0,N])
+    if j <= tm:
+        cost += w4*cp.square(q_2star[j] - q_2[0,N])
     constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
     # constr += [q_1[:,N] >= , q_2[0,N] >= ]
     constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
