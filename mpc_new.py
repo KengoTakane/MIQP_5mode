@@ -357,7 +357,7 @@ for j in range(time):
         t = t+1
     cost += w3*cp.square(q_1star[j] - q_1[:,N])
     if j <= tm:
-        cost += w4*cp.square(q_2star[j] - q_2[0,N])
+        cost += w4*cp.square(q_2star[0,j] - q_2[0,N])
     constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
     # constr += [q_1[:,N] >= , q_2[0,N] >= ]
     constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
@@ -366,7 +366,7 @@ for j in range(time):
     prob.solve(solver=cp.CPLEX, verbose=True)
     Ta_star[j] = Ta[:,0].value
     Rh_star[j] = Rh[:,0].value
-    q_1star[j+1], q_2star[:,j+1] = q_1[0,1], q_2[:,1]
+    q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
     # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
     print("j=",j)
     print("q_1star(j+1):",q_1star[j+1])
