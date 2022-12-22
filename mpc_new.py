@@ -360,7 +360,7 @@ for j in range(time):
         if j <= tm:
             cost += w4*cp.square(q_2star[0,j] - q_2[0,N])
         constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
-        # constr += [q_1[:,N] >= , q_2[0,N] >= ]
+        constr += [q_1[:,N] >= qf, q_2[0,N] >= H_min]
         constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
         objective = cp.Minimize(cost)
         prob = cp.Problem(objective, constr)
