@@ -359,8 +359,9 @@ for j in range(time):
         cost += w3*cp.square(q_1star[j] - q_1[:,N])
         if j <= tm:
             cost += w4*cp.square(q_2star[0,j] - q_2[0,N])
+            constr += [q_2[0,N+1] >= H_min]
         constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
-        constr += [q_1[:,N] >= qf, q_2[0,N] >= H_min]
+        constr += [q_1[:,N+1] >= qf]
         constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
         objective = cp.Minimize(cost)
         prob = cp.Problem(objective, constr)
