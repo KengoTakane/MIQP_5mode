@@ -307,7 +307,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
 s, time, N = 5, 25, 5
-tm, tf = 9, 20
+tm, tf = 9, 17
 
 H_0 = 62.9
 H_plusinf = 43.1
@@ -331,7 +331,7 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min
-w1, w2, w3, w4 = 5, 5, 800, 1000
+w1, w2, w3, w4 = 5, 5, 900, 800
 
 
 q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
@@ -359,9 +359,9 @@ for j in range(time):
         cost += w3*cp.square(q_1star[j] - q_1[:,N])
         if j <= tm:
             cost += w4*cp.square(q_2star[0,j] - q_2[0,N])
-            constr += [q_2[0,N+1] >= H_min]
+            constr += [q_2[0,N] >= H_min]
         constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
-        constr += [q_1[:,N+1] >= qf]
+        constr += [q_1[:,N] >= qf]
         constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
         objective = cp.Minimize(cost)
         prob = cp.Problem(objective, constr)
