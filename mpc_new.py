@@ -1,9 +1,10 @@
 import cvxpy as cp
 import numpy as np
-# from sympy import exp
-# import cplex
-# import docplex
+from sympy import exp
+import cplex
+import docplex
 from scipy.linalg import block_diag
+from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -310,6 +311,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 s, time, N = 5, 25, 5
 tm, tf = 9, 17
 
+# トマトモデルのパラメータ
 H_0 = 62.9
 H_plusinf = 43.1
 H_minusinf = 124
@@ -317,6 +319,11 @@ k_ref = 0.0019
 E_a = 170.604
 T_ref = 288.15
 Rg = 0.008314
+
+# ポテトモデルのパラメータ
+a = 1.00
+b = -1.59
+E = 0.045
 
 Ta_min, Ta_max = 278, 298
 Rh_min, Rh_max = 30, 95
@@ -338,6 +345,23 @@ w1, w2, w3, w4 = 5, 5, 900, 800
 q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
 q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
 
+def k(T):
+    return k_ref*np.exp((E_a/Rg)*(1/T_ref-1/T))
+
+def H(t,T):
+    return H_plusinf + (H_minusinf-H_plusinf)/(1+np.exp((k(T)*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
+
+Enz_0 = Enz_min
+t_span = [0.0,22.0]
+t_eval = list(range(tf))
+
+def fun2(t,X,T):
+    H,Enz = X
+    return [-k(T)*H*Enz, k(T)*H*Enz]
+
+def fun1(t,X,T,Rh):
+    q = X
+    return ((-a * np.exp(b*Rh/100) * np.exp(-E/(Rg*T)))/1000) * q
 
 for j in range(time):
     if j <= tf:
@@ -370,6 +394,12 @@ for j in range(time):
         Ta_star[j] = Ta[:,0].value
         Rh_star[j] = Rh[:,0].value
         q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
+        init_q1 = [q_1star[j]]
+        sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star[j],Rh_star[j]])
+        q_1star[j+1] = sol_q1.y[1]
+        init_q2 = [q_2star[0,j]-H_plusinf, q_2star[1,j]]
+        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star[j]])
+        q_2star[0,j+1], q_2star[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
         # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
         print("j=",j)
         print("q_1star(j+1):",q_1star[j+1])
