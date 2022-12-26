@@ -393,7 +393,7 @@ for j in range(time):
         prob.solve(solver=cp.CPLEX, verbose=False)
         Ta_star[j] = Ta[:,0].value
         Rh_star[j] = Rh[:,0].value
-        q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
+        # q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
         init_q1 = [q_1star[j]]
         sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star[j],Rh_star[j]])
         q_1star[j+1] = sol_q1.y[1]
