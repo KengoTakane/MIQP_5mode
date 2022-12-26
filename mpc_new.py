@@ -396,7 +396,8 @@ for j in range(time):
         # q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
         init_q1 = [q_1star[j]]
         sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star[j],Rh_star[j]])
-        q_1star[j+1] = sol_q1.y[1]
+        # print("sol_q1.y:\n", sol_q1.y)
+        q_1star[j+1] = sol_q1.y[0,1]
         init_q2 = [q_2star[0,j]-H_plusinf, q_2star[1,j]]
         sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star[j]])
         q_2star[0,j+1], q_2star[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
