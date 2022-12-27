@@ -339,25 +339,25 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min
-w1, w2, w3, w4 = 5, 5, 900, 800
+w1, w2, w3, w4 = 5, 10, 90, 80
 
 
 q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
 q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
 
-def k(T):
+def k_rate(T):
     return k_ref*np.exp((E_a/Rg)*(1/T_ref-1/T))
 
 def H(t,T):
-    return H_plusinf + (H_minusinf-H_plusinf)/(1+np.exp((k(T)*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
+    return H_plusinf + (H_minusinf-H_plusinf)/(1+np.exp((k_rate(T)*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
 
 Enz_0 = Enz_min
-t_span = [0.0,22.0]
+t_span = [0.0,time]
 t_eval = list(range(tf))
 
 def fun2(t,X,T):
     H,Enz = X
-    return [-k(T)*H*Enz, k(T)*H*Enz]
+    return [-k_rate(T)*H*Enz, k_rate(T)*H*Enz]
 
 def fun1(t,X,T,Rh):
     q = X
