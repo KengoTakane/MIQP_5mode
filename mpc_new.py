@@ -365,7 +365,7 @@ def fun1(t,X,T,Rh):
 
 for j in range(time):
     if j <= tf:
-        cost = 0
+        cost = 0        #cost : コスト関数．最小化問題の目的関数
         constr = []
         t = 0
         q_1, q_2 = cp.Variable((1,N+1)), cp.Variable((2,N+1))
