@@ -470,31 +470,65 @@ print('delta_2:\n', delta_2.value)
 
 # Plot results.
 sns.set()
-fig = plt.figure()
 
+""" 
+fig = plt.figure()
 ax1 = fig.add_subplot(221)
 ax2 = fig.add_subplot(222)
 ax3 = fig.add_subplot(223)
 ax4 = fig.add_subplot(224)
 
 ax1.plot(range(tf),q_1star[0:tf])
-ax1.set_ylabel("quality 1")
-ax1.set_xlabel("days")
+ax1.set_ylabel("quality 1$[g]$")
+ax1.set_xlabel("$k[days]$")
 
 ax2.plot(range(tm),q_2star[0,0:tm])
-ax2.set_ylabel("quality 2")
-ax2.set_xlabel("days")
+ax2.set_ylabel("quality 2$[{}^\circ]$")
+ax2.set_xlabel("$k[days]$")
 
 ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$", marker="o")
 ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
-ax3.set_ylabel("$T_a$")
-ax3.set_xlabel("days")
+ax3.set_ylabel("$T_a[K]$")
+ax3.set_xlabel("$k[days]$")
 ax3.legend(loc='best')
 
-ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$")
+ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$", marker="o")
 ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
-ax4.set_ylabel("$R_h$")
-ax4.set_xlabel("days")
+ax4.set_ylabel("$R_h[\%]$")
+ax4.set_xlabel("$k[days]$")
+ax4.legend(loc='best')
+
+plt.tight_layout()
+plt.show()
+"""
+
+fig1 = plt.figure()
+fig2 = plt.figure()
+fig3 = plt.figure()
+fig4 = plt.figure()
+ax1 = fig1.add_subplot(111)
+ax2 = fig2.add_subplot(111)
+ax3 = fig3.add_subplot(111)
+ax4 = fig4.add_subplot(111)
+
+ax1.plot(range(tf),q_1star[0:tf])
+ax1.set_ylabel("quality 1$[g]$")
+ax1.set_xlabel("$k[days]$")
+
+ax2.plot(range(tm),q_2star[0,0:tm])
+ax2.set_ylabel("quality 2$[{}^\circ]$")
+ax2.set_xlabel("$k[days]$")
+
+ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$", marker="o")
+ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
+ax3.set_ylabel("$T_a[K]$")
+ax3.set_xlabel("$k[days]$")
+ax3.legend(loc='best')
+
+ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$", marker="o")
+ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
+ax4.set_ylabel("$R_h[\%]$")
+ax4.set_xlabel("$k[days]$")
 ax4.legend(loc='best')
 
 plt.tight_layout()
