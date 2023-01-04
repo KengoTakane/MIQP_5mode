@@ -1,31 +1,17 @@
 import cvxpy as cp
 import numpy as np
 from scipy.linalg import block_diag
+from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # モデル予測制御
 # 制約条件を，行列を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
 
 # Problem data.
 # np.random.seed(3)
-# s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
-s, time, N = 5, 15, 5
+
 delta_n, gamma_n = 5, 10
-qf = 1000
-Ta_max = 298
-Ta_min = 278
-Rh_max = 95
-Rh_min = 30
-T0 = np.random.randint(Ta_min+5,Ta_max,(1,time+N))
-Rh0 = np.random.randint(Rh_min,Rh_max,(1,time+N))
-
-a = 1.00
-b = -1.59
-E = 0.045
-Rg = 0.008314
-
-def fun(T,Rh,q):
-    return (((-a * np.exp(b*Rh/100) * np.exp(-E/(Rg*T)))/1000) + 1) * q
 
 
 A = np.array([[-4.21270271e-04+1], [-2.36178784e-04+1], [-3.22164500e-04+1], [-2.52650737e-04+1], [-5.55708636e-04+1]])
@@ -151,6 +137,8 @@ E4 = np.concatenate([np.zeros((2+gamma_n+gamma_n+gamma_n+gamma_n+20,delta_n)),-I
 E5 = np.concatenate([Gamma1,np.zeros((gamma_n+gamma_n,delta_n+gamma_n)),-hmin_hat,-hmax_hat-eps_hat,Gamma2,gmin_hat,-gmax_hat,gmax_hat,-gmin_hat], 0)
 E6 = np.concatenate([Eps1,-hmin+S,hmax-S,-hmin+S,-eps-S,Eps2,np.zeros(delta_n),np.zeros(delta_n),gmax-D,-gmin+D], 0)
 
+
+""" 
 # 対角行列は使ってない．
 E1_bar = block_diag(*([E1] * time))
 E2_bar = block_diag(*([E2] * time))
@@ -160,52 +148,107 @@ E5_bar = block_diag(*([E5] * time))
 E6_bar = np.stack(([E6]*time), axis = 0).flatten()
 E6_bar = E6_bar[:, np.newaxis]
 # print('E6_bar shape:', E6_bar.shape)
+"""
 
 
 # Construct the problem.
+
+# s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
+s, time, N = 5, 25, 5
+tm, tf = 9, 17
+
+# ポテトモデルのパラメータ
+a = 1.00
+b = -1.59
+E = 0.045
+Rg = 0.008314
+
+t_span = [0.0,time]
+t_eval = list(range(tf))
+def fun1(t,X,T,Rh):
+    q = X
+    return ((-a * np.exp(b*Rh/100) * np.exp(-E/(Rg*T)))/1000) * q
+
+Ta_min, Ta_max = 278, 298
+Rh_min, Rh_max = 30, 95
+qf = 1000
+
+T0 = np.random.uniform(Ta_min,Ta_max,(1,time))
+Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
+
 q0, ta0, rh0 = 1100, 280, 50
 w1, w2, w3 = 0.5, 0.8, 80000
 
-q_star = np.zeros(time+1)
-Ta_star = np.zeros(time)
-Rh_star = np.zeros(time)
+q_star, Ta_star, Rh_star = np.zeros(time+1), np.zeros(time), np.zeros(time)
 q_star[0] = q0
 # print("Ta_star:\n", Ta_star)
 
+
+
 for j in range(time):
-    cost = 0
-    constr = []
-    t = 0
-    q, Ta, Rh = cp.Variable((1,N+1)), cp.Variable((1,N)), cp.Variable((1,N))
-    z = cp.Variable((delta_n, N))
-    delta = cp.Variable((delta_n+gamma_n, N), integer=True)
-    for k in range(j,j+N):
-        # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
-        cost += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
-        constr += [q[:,t+1] == One@z[:,t],
-        E1@q[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z[:,t] + E5@delta[:,t] <= E6
-        ]
-        t = t+1
-    cost += w3*cp.square(q_star[j] - q[:,N])
-    constr += [q[:,0] == q_star[j]]
-    constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
-    objective = cp.Minimize(cost)
-    prob = cp.Problem(objective, constr)
-    prob.solve(solver=cp.CPLEX, verbose=True)
-    Ta_star[j] = Ta[:,0].value
-    Rh_star[j] = Rh[:,0].value
-    q_star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
-    print("j=",j)
-    print("q_star(j+1):",q_star[j+1])
-    print("Ta_star:",Ta.value)
-    print("Rh_star",Rh.value)
-    print("Ta_out:", T0)
-    print("Rh_out:", Rh0)
-    
+    if j <= tf:
+        cost = 0
+        constr = []
+        t = 0
+        q, Ta, Rh = cp.Variable((1,N+1)), cp.Variable((1,N)), cp.Variable((1,N))
+        z = cp.Variable((delta_n, N))
+        delta = cp.Variable((delta_n+gamma_n, N), integer=True)
+        for k in range(j,j+N):
+            # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
+            cost += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
+            constr += [q[:,t+1] == One@z[:,t],
+            E1@q[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z[:,t] + E5@delta[:,t] <= E6]
+            t = t+1
+        cost += w3*cp.square(q_star[j] - q[:,N])
+        constr += [q[:,0] == q_star[j]]
+        constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+        objective = cp.Minimize(cost)
+        prob = cp.Problem(objective, constr)
+        prob.solve(solver=cp.CPLEX, verbose=False)
+        Ta_star[j] = Ta[:,0].value
+        Rh_star[j] = Rh[:,0].value
+        # q_star[j+1] = fun1(Ta_star[j],Rh_star[j],q_star[j])
+        init_q1 = [q_star[j]]
+        sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star[j],Rh_star[j]])
+        q_star[j+1] = sol_q1.y[0,1]
+        print("j=",j)
+        print("q_star(j+1):",q_star[j+1])
+
 
 
 # Plot results.
+fig1 = plt.figure(figsize=(6,4))
+fig3 = plt.figure(figsize=(6,4))
+fig4 = plt.figure(figsize=(6,4))
+ax1 = fig1.add_subplot(111)
+ax3 = fig3.add_subplot(111)
+ax4 = fig4.add_subplot(111)
 
+ax1.plot(range(tf),q_star[0:tf])
+ax1.set_ylabel("quality 1$[g]$",fontsize=12)
+ax1.set_xlabel("$k[days]$",fontsize=12)
+
+ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$", marker="o")
+ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
+ax3.set_ylabel("$T_a[K]$",fontsize=12)
+ax3.set_xlabel("$k[days]$",fontsize=12)
+ax3.legend(loc='best')
+
+ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$", marker="o")
+ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
+ax4.set_ylabel("$R_h[\%]$",fontsize=12)
+ax4.set_xlabel("$k[days]$",fontsize=12)
+ax4.legend(loc='best')
+fig1.tight_layout()
+fig3.tight_layout()
+fig4.tight_layout()
+fig1.savefig("sim1_q1.png")
+fig3.savefig("sim1_imput1.png")
+fig4.savefig("sim1_imput2.png")
+plt.show()
+
+
+"""
 f = plt.figure()
 
 # Plot (u_t)_1.
@@ -238,3 +281,4 @@ plt.xlabel(r"$t$", fontsize=16)
 
 plt.tight_layout()
 plt.show()
+"""

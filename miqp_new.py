@@ -7,6 +7,7 @@ from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 
 #制約条件を，行列を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
+#下限値の条件を追加する必要がある．
 
 # Problem data.
 # np.random.seed(3)
