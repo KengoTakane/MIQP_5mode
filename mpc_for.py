@@ -217,6 +217,9 @@ for j in range(time):
 
 
 # Plot results.
+sns.set()
+sns.set_style("whitegrid")
+
 fig1 = plt.figure(figsize=(6,4))
 fig3 = plt.figure(figsize=(6,4))
 fig4 = plt.figure(figsize=(6,4))
