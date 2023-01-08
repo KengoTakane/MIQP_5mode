@@ -1,3 +1,6 @@
+# モデル予測制御(MPC)と最適制御(OC)のシミュレーション結果を比較する．
+# 制約条件を，行列(E)を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
+
 import cvxpy as cp
 import numpy as np
 from sympy import exp
@@ -8,21 +11,19 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# モデル予測制御
-# 制約条件を，行列を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
 
 # Problem data.
 # np.random.seed(3)
 delta_n, gamma_n = 5, 10
 delta_t = 1
 
-# T0 = np.random.randint(Ta_min,Ta_max,(time,1))
-# Rh0 = np.random.randint(Rh_min,Rh_max,(time,1))
 
 
-################################################################################
-############################# potatoのMLDモデルのパラメータ ########################
-################################################################################
+#==================================================================================#
+#==================================================================================#
+#=========================== potatoのMLDモデルのパラメータ ===========================#
+#==================================================================================#
+#==================================================================================#
 
 A = np.array([[-4.21270271e-04+1], [-2.36178784e-04+1], [-3.22164500e-04+1], [-2.52650737e-04+1], [-5.55708636e-04+1]])
 B = np.array([[-4.84453301e-05], [-3.14845920e-05], [-5.36849855e-05], [-1.67910305e-05], [1.35079377e-05]])
@@ -152,11 +153,11 @@ E6 = np.concatenate([Eps1,-hmin+S,hmax-S,-hmin+S,-eps-S,Eps2,np.zeros(delta_n),n
 
 
 
-
-
-################################################################################
-############################# tomatoのMLDモデルのパラメータ ########################
-################################################################################
+#==================================================================================#
+#==================================================================================#
+#=========================== tomatoのMLDモデルのパラメータ ===========================#
+#==================================================================================#
+#==================================================================================#
 
 A_H = np.array([-0.10280675, -0.01900384, -1.0640578, -0.2409164, -0.55442332])
 A_H = np.array([[A_H[0]+delta_t, -A_H[0], A_H[1]+delta_t, -A_H[1], A_H[2]+delta_t, -A_H[2], A_H[3]+delta_t, -A_H[3], A_H[4]+delta_t, -A_H[4]]]).T
@@ -328,8 +329,9 @@ Ta_min, Ta_max = 278, 298
 Rh_min, Rh_max = 30, 95
 H_min, H_max = 42, H_0
 Enz_min, Enz_max = 61, 80
-qf = 1000
+qf = 1000       #　ポテト(q1)の下限値
 
+#   外部の温度と湿度
 T0 = np.random.uniform(Ta_min,Ta_max,(1,time))
 Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
@@ -340,9 +342,6 @@ ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min   #品質の初期値
 w1, w2, w3, w4 = 5, 10, 90, 80          #重み係数
 
-
-q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
-q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
 
 def k_rate(T):
     return k_ref*np.exp((E_a/Rg)*(1/T_ref-1/T))
@@ -362,10 +361,20 @@ def fun1(t,X,T,Rh):
     q = X
     return ((-a * np.exp(b*Rh/100) * np.exp(-E/(Rg*T)))/1000) * q
 
+
+
+#==========================================================================#
+#==========================================================================#
+#=========================== モデル予測制御（MPC） ===========================#
+#==========================================================================#
+#==========================================================================#
+
+q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
+q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
 for j in range(time):
     if j <= tf:
-        cost = 0        #cost : コスト関数．最小化問題の目的関数
-        constr = []     #constr : 最小化問題の制約条件
+        cost_mpc = 0        #cost : コスト関数．最小化問題の目的関数
+        constr_mpc = []     #constr : 最小化問題の制約条件
         t = 0
         q_1, q_2 = cp.Variable((1,N+1)), cp.Variable((2,N+1))
         Ta, Rh = cp.Variable((1,N)), cp.Variable((1,N))
@@ -373,23 +382,23 @@ for j in range(time):
         delta_1, delta_2 = cp.Variable((delta_n+gamma_n, N), integer=True), cp.Variable((delta_n+gamma_n, N), integer=True)
         for k in range(j,j+N):
             # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
-            cost += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
-            constr += [q_1[:,t+1] == One@z_1[:,t],
+            cost_mpc += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
+            constr_mpc += [q_1[:,t+1] == One@z_1[:,t],
             q_2[:,t+1] == One_H@z_2[:,t],
             E1@q_1[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z_1[:,t] + E5@delta_1[:,t] <= E6,
             E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
             ]
             t = t+1
-        cost += w3*cp.square(q_1star[j] - q_1[:,N])
+        cost_mpc += w3*cp.square(q_1star[j] - q_1[:,N])
         if j <= tm:
-            cost += w4*cp.square(q_2star[0,j] - q_2[0,N])
-            constr += [q_2[0,N] >= H_min]
-        constr += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
-        constr += [q_1[:,N] >= qf]
-        constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
-        objective = cp.Minimize(cost)
-        prob = cp.Problem(objective, constr)
-        prob.solve(solver=cp.CPLEX, verbose=False)
+            cost_mpc += w4*cp.square(q_2star[0,j] - q_2[0,N])
+            constr_mpc += [q_2[0,N] >= H_min]
+        constr_mpc += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
+        constr_mpc += [q_1[:,N] >= qf]
+        constr_mpc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+        obj_mpc = cp.Minimize(cost_mpc)
+        prob_mpc = cp.Problem(obj_mpc, constr_mpc)
+        prob_mpc.solve(solver=cp.CPLEX, verbose=False)
         Ta_star[j] = Ta[:,0].value
         Rh_star[j] = Rh[:,0].value
         # q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
@@ -451,13 +460,39 @@ for j in range(time):
     # print("Rh_out:", Rh0)
 """
 
+#====================================================================#
+#====================================================================#
+#=========================== 最適制御（OC） ===========================#
+#====================================================================#
+#====================================================================#
+
+#### q_2:H(t), q_3:Enz(t) とする ####
+q_1, q_2 = cp.Variable((1,time+1)), cp.Variable((2,time+1))
+Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
+z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
+delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
+
+cost_oc = 0       #cost : コスト関数．最小化問題の目的関数
+constr_oc = []     #constr : 最小化問題の制約条件
+for k in range(time):
+    cost_oc += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
+    constr_oc += [q_1[:,k+1] == One@z_1[:,k],
+    q_2[:,k+1] == One_H@z_2[:,k],
+    E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
+    E1_H@q_2[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
+    ]
+cost_oc += w3*cp.square(q_10 - q_1[:,time])
+cost_oc += w4*cp.square(q_20 - q_2[0,tm])
+constr_oc += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30, q_1[:,time] >= qf, q_2[0,tm] >= H_min]
+constr_oc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+
 
 print(cp.installed_solvers())
-objective = cp.Minimize(cost)
-prob = cp.Problem(objective, constr)
-prob.solve(solver=cp.CPLEX, verbose=True)
-print("Status: ", prob.status)
-print("The optimal value is\n", prob.value)
+obj_oc = cp.Minimize(cost_oc)
+prob_oc = cp.Problem(obj_oc, constr_oc)
+prob_oc.solve(solver=cp.CPLEX, verbose=False)
+print("Status of OC: ", prob_oc.status)
+print("The optimal value (OC) is\n", prob_oc.value)
 print('q_1:\n', q_1.value)
 print('q_2:\n', q_2.value)
 print('Ta:\n', Ta.value)
@@ -466,7 +501,17 @@ print('delta_1:\n', delta_1.value)
 print('delta_2:\n', delta_2.value)
 
 
-# Plot results.
+
+
+
+
+
+#=====================================================================#
+#=====================================================================#
+#=========================== Plot results. ===========================#
+#=====================================================================#
+#=====================================================================#
+
 sns.set()
 sns.set_style("whitegrid")
 
