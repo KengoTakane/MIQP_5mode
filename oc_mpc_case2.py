@@ -3,7 +3,6 @@
 
 import cvxpy as cp
 import numpy as np
-from sympy import exp
 import cplex
 import docplex
 from scipy.linalg import block_diag
@@ -402,6 +401,7 @@ for j in range(time):
         Ta_star[j] = Ta[:,0].value
         Rh_star[j] = Rh[:,0].value
         # q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
+        #   得られた制御入力(Ta,Rh)を，制御対象(非線形関数)に代入する．
         init_q1 = [q_1star[j]]
         sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star[j],Rh_star[j]])
         # print("sol_q1.y:\n", sol_q1.y)
@@ -466,7 +466,8 @@ for j in range(time):
 #====================================================================#
 #====================================================================#
 
-#### q_2:H(t), q_3:Enz(t) とする ####
+q_1oc, q_2oc = np.empty(time+1), np.empty((2,time+1))
+q_1oc[0], q_2oc[0,0], q_2oc[1,0] = q_10, q_20, q_30
 q_1, q_2 = cp.Variable((1,time+1)), cp.Variable((2,time+1))
 Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
 z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
@@ -493,6 +494,18 @@ prob_oc = cp.Problem(obj_oc, constr_oc)
 prob_oc.solve(solver=cp.CPLEX, verbose=False)
 print("Status of OC: ", prob_oc.status)
 print("The optimal value (OC) is\n", prob_oc.value)
+
+#   得られた制御入力(Ta,Rh)を，制御対象(非線形関数)に代入する．
+for j in range(tf):
+    init_q1 = [q_1oc[j]]
+    sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta[:,j].value,Rh[:,j].value])
+    q_1oc[j+1] = sol_q1.y[0,1]
+    if j <= tm:
+        init_q2 = [q_2oc[0,j]-H_plusinf, q_2oc[1,j]]
+        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta[:,j].value])
+        q_2oc[0,j+1], q_2oc[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
+
+
 print('q_1:\n', q_1.value)
 print('q_2:\n', q_2.value)
 print('Ta:\n', Ta.value)
@@ -555,21 +568,27 @@ ax2 = fig2.add_subplot(111)
 ax3 = fig3.add_subplot(111)
 ax4 = fig4.add_subplot(111)
 
-ax1.plot(range(tf),q_1star[0:tf])
+ax1.plot(range(tf), q_1star[0:tf], label="$q_{1}(k)$(MPC)")
+ax1.plot(range(tf), q_1oc[0:tf], label="$q_{1}(k)$(OC)")
 ax1.set_ylabel("quality 1$[g]$",fontsize=12)
 ax1.set_xlabel("$k[days]$",fontsize=12)
+ax1.legend(loc='best')
 
-ax2.plot(range(tm),q_2star[0,0:tm])
+ax2.plot(range(tm), q_2star[0,0:tm], label="$q_{2}(k)$(MPC)")
+ax2.plot(range(tm), q_2oc[0,0:tm], label="$q_{2}(k)$(OC)")
 ax2.set_ylabel("quality 2$[{}^\circ]$",fontsize=12)
 ax2.set_xlabel("$k[days]$",fontsize=12)
+ax2.legend(loc='best')
 
-ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$", marker="o")
+ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$(MPC)", marker="o")
+ax3.step(range(tf), Ta[0,0:tf].value, where='post', label="$T_{a}(k)$(OC)", marker="o")
 ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
 ax3.set_ylabel("$T_a[K]$",fontsize=12)
 ax3.set_xlabel("$k[days]$",fontsize=12)
 ax3.legend(loc='best')
 
-ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$", marker="o")
+ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$(MPC)", marker="o")
+ax4.step(range(tf), Rh[0,0:tf], where='post', label="$R_{h}(k)$(OC)", marker="o")
 ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
 ax4.set_ylabel("$R_h[\%]$",fontsize=12)
 ax4.set_xlabel("$k[days]$",fontsize=12)
