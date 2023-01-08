@@ -347,7 +347,7 @@ for k in range(time):
     ]
 cost += w3*cp.square(q_10 - q_1[:,time])
 cost += w4*cp.square(q_20 - q_2[0,tm])
-constr += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30]
+constr += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30, q_1[:,time] >= qf, q_2[0,tm] >= H_min]
 constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 
