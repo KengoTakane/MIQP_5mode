@@ -370,6 +370,7 @@ def fun1(t,X,T,Rh):
 
 q_1star, Ta_star, Rh_star = np.zeros(time+1), np.zeros(time), np.zeros(time)
 q_1star[0] = q_10
+total_cost_mpc = 0
 for j in range(time):
     if j <= tf:
         cost_mpc = 0        #cost : コスト関数．最小化問題の目的関数
