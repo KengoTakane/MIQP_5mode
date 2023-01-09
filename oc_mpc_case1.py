@@ -446,9 +446,7 @@ for j in range(tf):
     q_1oc[j+1] = sol_q1.y[0,1]
 
 
-print('q_1:\n', q_1.value)
-print('Ta:\n', Ta.value)
-print('Rh:\n', Rh.value)
+# print('q_1:\n', q_1.value)
 print('delta_1:\n', delta_1.value)
 
 

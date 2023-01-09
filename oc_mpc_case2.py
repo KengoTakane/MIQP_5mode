@@ -410,13 +410,10 @@ for j in range(time):
         sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star[j]])
         q_2star[0,j+1], q_2star[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
         # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
-        print("j=",j)
-        print("q_1star(j+1):",q_1star[j+1])
-        print("q_2star(j+1):",q_2star[:,j+1])
-        # print("Ta_star:",Ta.value)
-        # print("Rh_star",Rh.value)
-        # print("Ta_out:", T0)
-        # print("Rh_out:", Rh0)
+        # print("j=",j)
+        # print("q_1star(j+1):",q_1star[j+1])
+        # print("q_2star(j+1):",q_2star[:,j+1])
+        
 
 
 
@@ -466,12 +463,12 @@ for j in range(time):
 #====================================================================#
 #====================================================================#
 
-q_1oc, q_2oc = np.empty(time+1), np.empty((2,time+1))
+q_1oc, q_2oc = np.empty(tf+1), np.empty((2,tf+1))
 q_1oc[0], q_2oc[0,0], q_2oc[1,0] = q_10, q_20, q_30
-q_1, q_2 = cp.Variable((1,time+1)), cp.Variable((2,time+1))
-Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
-z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
-delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
+q_1, q_2 = cp.Variable((1,tf+1)), cp.Variable((2,tf+1))
+Ta, Rh = cp.Variable((1,tf)), cp.Variable((1,tf))
+z_1, z_2 = cp.Variable((delta_n, tf)), cp.Variable((2*delta_n, tf))
+delta_1, delta_2 = cp.Variable((delta_n+gamma_n, tf), integer=True), cp.Variable((delta_n+gamma_n, tf), integer=True)
 
 cost_oc = 0       #cost : コスト関数．最小化問題の目的関数
 constr_oc = []     #constr : 最小化問題の制約条件
@@ -506,10 +503,8 @@ for j in range(tf):
         q_2oc[0,j+1], q_2oc[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
 
 
-print('q_1:\n', q_1.value)
-print('q_2:\n', q_2.value)
-print('Ta:\n', Ta.value)
-print('Rh:\n', Rh.value)
+# print('q_1:\n', q_1.value)
+# print('q_2:\n', q_2.value)
 print('delta_1:\n', delta_1.value)
 print('delta_2:\n', delta_2.value)
 
