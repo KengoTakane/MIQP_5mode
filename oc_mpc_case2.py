@@ -475,16 +475,16 @@ delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variab
 
 cost_oc = 0       #cost : コスト関数．最小化問題の目的関数
 constr_oc = []     #constr : 最小化問題の制約条件
-for k in range(time):
+for k in range(tf):
     cost_oc += w1*cp.square(Ta[:,k]-T0[:,k]) + w2*cp.square(Rh[:,k]-Rh0[:,k])
     constr_oc += [q_1[:,k+1] == One@z_1[:,k],
     q_2[:,k+1] == One_H@z_2[:,k],
     E1@q_1[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z_1[:,k] + E5@delta_1[:,k] <= E6,
     E1_H@q_2[:,k] + E3_H@Ta[:,k] + E4_H@z_2[:,k] + E5_H@delta_2[:,k] <= E6_H
     ]
-cost_oc += w3*cp.square(q_10 - q_1[:,time])
+cost_oc += w3*cp.square(q_10 - q_1[:,tf])
 cost_oc += w4*cp.square(q_20 - q_2[0,tm])
-constr_oc += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30, q_1[:,time] >= qf, q_2[0,tm] >= H_min]
+constr_oc += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30, q_1[:,tf] >= qf, q_2[0,tm] >= H_min]
 constr_oc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 
