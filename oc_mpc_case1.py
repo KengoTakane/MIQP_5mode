@@ -402,8 +402,8 @@ for j in range(time):
         # print("sol_q1.y:\n", sol_q1.y)
         q_1star[j+1] = sol_q1.y[0,1]
         # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
-        print("j=",j)
-        print("q_1star(j+1):",q_1star[j+1])
+        # print("j=",j)
+        # print("q_1star(j+1):",q_1star[j+1])
 
 
 
@@ -435,7 +435,7 @@ constr_oc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 print(cp.installed_solvers())
 obj_oc = cp.Minimize(cost_oc)
 prob_oc = cp.Problem(obj_oc, constr_oc)
-prob_oc.solve(solver=cp.CPLEX, verbose=False)
+prob_oc.solve(solver=cp.CPLEX, verbose=True)
 print("Status of OC: ", prob_oc.status)
 print("The optimal value (OC) is\n", prob_oc.value)
 
