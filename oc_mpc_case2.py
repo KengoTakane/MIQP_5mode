@@ -588,7 +588,7 @@ ax3.set_xlabel("$k[days]$",fontsize=12)
 ax3.legend(loc='best')
 
 ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$(MPC)", marker="o")
-ax4.step(range(tf), Rh[0,0:tf], where='post', label="$R_{h}(k)$(OC)", marker="o")
+ax4.step(range(tf), Rh[0,0:tf].value, where='post', label="$R_{h}(k)$(OC)", marker="o")
 ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
 ax4.set_ylabel("$R_h[\%]$",fontsize=12)
 ax4.set_xlabel("$k[days]$",fontsize=12)
