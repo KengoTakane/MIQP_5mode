@@ -179,7 +179,7 @@ constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 objective = cp.Minimize(cost)
 prob = cp.Problem(objective, constr)
-prob.solve(solver=cp.SCIP, verbose=True)
+prob.solve(solver=cp.CPLEX, verbose=True)
 print(cp.installed_solvers())
 print("Status: ", prob.status)
 print("The optimal value is\n", prob.value)
