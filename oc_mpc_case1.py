@@ -413,11 +413,11 @@ for j in range(time):
 #====================================================================#
 #====================================================================#
 
-q_1oc = np.empty(time+1)
+q_1oc = np.empty(tf+1)
 q_1oc[0] = q_10
-q_1 = cp.Variable((1,time+1))
-Ta, Rh = cp.Variable((1,time)), cp.Variable((1,time))
-z_1 = cp.Variable((delta_n, time))
+q_1 = cp.Variable((1,tf+1))
+Ta, Rh = cp.Variable((1,tf)), cp.Variable((1,tf))
+z_1 = cp.Variable((delta_n, tf))
 delta_1 = cp.Variable((delta_n+gamma_n, time), integer=True)
 
 cost_oc = 0       #cost : コスト関数．最小化問題の目的関数
@@ -491,7 +491,7 @@ ax4.legend(loc='best')
 fig1.tight_layout()
 fig3.tight_layout()
 fig4.tight_layout()
-fig1.savefig("sim1_q1.png")
-fig3.savefig("sim1_imput1.png")
-fig4.savefig("sim1_imput2.png")
+# fig1.savefig("sim1_q1.png")
+# fig3.savefig("sim1_imput1.png")
+# fig4.savefig("sim1_imput2.png")
 plt.show()
