@@ -3,12 +3,11 @@
 
 import cvxpy as cp
 import numpy as np
-import cplex
-import docplex
 from scipy.linalg import block_diag
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 
 # Problem data.
@@ -493,3 +492,19 @@ fig4.tight_layout()
 # fig3.savefig("sim1_imput1.png")
 # fig4.savefig("sim1_imput2.png")
 plt.show()
+
+
+""" 
+#========================================================================#
+#========================================================================#
+#=========================== set on the TABLE. ===========================#
+#========================================================================#
+#========================================================================#
+
+data = np.array([[q_1oc[tf], prob_oc.value],[q_1star[tf], ]])
+index = ["OC", "MPC"]
+columns = ["final Quality", "Total cost (J)"]
+
+pd.DataFrame(data=data)
+
+"""
