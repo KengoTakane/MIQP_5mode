@@ -1,12 +1,15 @@
+# 最適制御(OC)のシミュレーション結果．
+# 得られた制御入力(Ta,Rh)を, 制御対象(非線形関数)に代入していない．
+# 制約条件を，行列を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
+
+
 import cvxpy as cp
 import numpy as np
-# from sympy import exp
-# import cplex
-# import docplex
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.integrate import solve_ivp
 
-#制約条件を，行列を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
 
 
 # Problem data.
