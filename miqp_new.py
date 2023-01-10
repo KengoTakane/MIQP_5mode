@@ -309,6 +309,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 
 # Construct the problem.
 tm, time = 10, 17
+tf = time
 
 # トマトモデルのパラメータ
 H_0 = 62.9
@@ -336,7 +337,15 @@ z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
 delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min   #品質の初期値
-w1, w2, w3, w4 = 5, 5, 800, 1000        #重み係数
+w1, w2, w3, w4 = 5, 5, 80, 100        #重み係数
+
+
+
+#====================================================================#
+#====================================================================#
+#=========================== 最適制御（OC） ===========================#
+#====================================================================#
+#====================================================================#
 
 
 cost = 0       #cost : コスト関数．最小化問題の目的関数
@@ -360,10 +369,54 @@ prob = cp.Problem(objective, constr)
 prob.solve(solver=cp.CPLEX, verbose=True)
 print("Status: ", prob.status)
 print("The optimal value is\n", prob.value)
-print('q_1:\n', q_1.value)
-print('q_2:\n', q_2.value)
-print('Ta:\n', Ta.value)
-print('Rh:\n', Rh.value)
+# print('q_1:\n', q_1.value)
+# print('q_2:\n', q_2.value)
+# print('Ta:\n', Ta.value)
+# print('Rh:\n', Rh.value)
 print('delta_1:\n', delta_1.value)
 print('delta_2:\n', delta_2.value)
 # print('delta_3:\n', delta_3.value)
+
+
+# Plot results.
+
+sns.set()
+sns.set_style("whitegrid")
+
+fig1 = plt.figure(figsize=(6,4))
+fig2 = plt.figure(figsize=(6,4))
+fig3 = plt.figure(figsize=(6,4))
+fig4 = plt.figure(figsize=(6,4))
+ax1 = fig1.add_subplot(111)
+ax2 = fig2.add_subplot(111)
+ax3 = fig3.add_subplot(111)
+ax4 = fig4.add_subplot(111)
+
+ax1.plot(range(tf),q_1[0:tf].value)
+ax1.set_ylabel("quality 1$[g]$",fontsize=12)
+ax1.set_xlabel("$k[days]$",fontsize=12)
+
+ax2.plot(range(tm),q_2[0,0:tm].value)
+ax2.set_ylabel("quality 2$[{}^\circ]$",fontsize=12)
+ax2.set_xlabel("$k[days]$",fontsize=12)
+
+ax3.step(range(tf), Ta[0,0:tf].value, where='post', label="$T_{a}(k)$", marker="o")
+ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
+ax3.set_ylabel("$T_a[K]$",fontsize=12)
+ax3.set_xlabel("$k[days]$",fontsize=12)
+ax3.legend(loc='best')
+
+ax4.step(range(tf), Rh[0,0:tf].value, where='post', label="$R_{h}(k)$", marker="o")
+ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
+ax4.set_ylabel("$R_h[\%]$",fontsize=12)
+ax4.set_xlabel("$k[days]$",fontsize=12)
+ax4.legend(loc='best')
+fig1.tight_layout()
+fig2.tight_layout()
+fig3.tight_layout()
+fig4.tight_layout()
+# fig1.savefig("sim2_q1.png")
+# fig2.savefig("sim2_q2.png")
+# fig3.savefig("sim2_imput1.png")
+# fig4.savefig("sim2_imput2.png")
+plt.show()
