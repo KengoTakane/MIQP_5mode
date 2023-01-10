@@ -307,7 +307,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
 s, time, N = 5, 25, 5
-tm, tf = 9, 13
+tm, tf = 7, 10
 
 # トマトモデルのパラメータ
 H_0 = 62.9
