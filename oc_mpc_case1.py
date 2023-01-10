@@ -435,7 +435,7 @@ constr_oc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 print(cp.installed_solvers())
 obj_oc = cp.Minimize(cost_oc)
 prob_oc = cp.Problem(obj_oc, constr_oc)
-prob_oc.solve(solver=cp.CPLEX, verbose=True)
+prob_oc.solve(solver=cp.CPLEX, verbose=False)
 print("Status of OC: ", prob_oc.status)
 print("The optimal value (OC) is\n", prob_oc.value)
 
