@@ -499,7 +499,7 @@ for j in range(tf):
     q_1oc[j+1] = sol_q1.y[0,1]
     if j <= tm:
         init_q2 = [q_2oc[0,j]-H_plusinf, q_2oc[1,j]]
-        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta[:,j].value])
+        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta[0,j].value])
         q_2oc[0,j+1], q_2oc[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
 
 
