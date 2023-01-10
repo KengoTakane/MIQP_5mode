@@ -307,8 +307,8 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 # Construct the problem.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
-s, time, N = 5, 30, 5
-tm, tf = 9, 24
+s, time, N = 5, 25, 5
+tm, tf = 9, 18
 
 # トマトモデルのパラメータ
 H_0 = 62.9
@@ -339,7 +339,7 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min   #品質の初期値
-w1, w2, w3, w4 = 5, 10, 900, 800          #重み係数
+w1, w2, w3, w4 = 0.5, 1, 900, 800          #重み係数
 
 
 def k_rate(T):

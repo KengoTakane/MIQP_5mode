@@ -338,7 +338,7 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min   #品質の初期値
-w1, w2, w3, w4 = 5, 10, 900, 800          #重み係数
+w1, w2, w3, w4 = 0.5, 1, 900, 800         #重み係数
 
 
 def k_rate(T):
