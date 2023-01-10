@@ -307,7 +307,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
 s, time, N = 5, 25, 5
-tm, tf = 9, 17
+tm, tf = 9, 13
 
 # トマトモデルのパラメータ
 H_0 = 62.9
@@ -338,7 +338,7 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min   #品質の初期値
-w1, w2, w3, w4 = 5, 10, 90, 80          #重み係数
+w1, w2, w3, w4 = 5, 10, 900, 800          #重み係数
 
 
 def k_rate(T):
@@ -484,7 +484,7 @@ constr_oc += [q_1[:,0] == q_10, q_2[0,0] == q_20, q_2[1,0] == q_30, q_1[:,tf] >=
 constr_oc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 
-print(cp.installed_solvers())
+# print(cp.installed_solvers())
 obj_oc = cp.Minimize(cost_oc)
 prob_oc = cp.Problem(obj_oc, constr_oc)
 prob_oc.solve(solver=cp.CPLEX, verbose=True)
