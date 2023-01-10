@@ -405,7 +405,7 @@ ax2 = fig2.add_subplot(111)
 ax3 = fig3.add_subplot(111)
 ax4 = fig4.add_subplot(111)
 
-ax1.plot(range(tf),q_1[0:tf].value)
+ax1.plot(range(tf),q_1[0,0:tf].value)
 ax1.set_ylabel("quality 1$[g]$",fontsize=12)
 ax1.set_xlabel("$k[days]$",fontsize=12)
 
