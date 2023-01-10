@@ -307,8 +307,8 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 # Construct the problem.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
-s, time, N = 5, 25, 5
-tm, tf = 9, 17
+s, time, N = 5, 40, 5
+tm, tf = 9, 30
 
 # トマトモデルのパラメータ
 H_0 = 62.9
@@ -534,8 +534,8 @@ fig1.tight_layout()
 fig2.tight_layout()
 fig3.tight_layout()
 fig4.tight_layout()
-fig1.savefig("sim2_q1.png")
-fig2.savefig("sim2_q2.png")
-fig3.savefig("sim2_imput1.png")
-fig4.savefig("sim2_imput2.png")
+# fig1.savefig("sim2_q1.png")
+# fig2.savefig("sim2_q2.png")
+# fig3.savefig("sim2_imput1.png")
+# fig4.savefig("sim2_imput2.png")
 plt.show()
