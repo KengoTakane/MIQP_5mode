@@ -153,7 +153,7 @@ E6_bar = E6_bar[:, np.newaxis]
 
 
 # Construct the problem.
-tm, time = 10, 12
+tm, time = 10, 10
 tf = time
 
 Ta_min, Ta_max = 278, 298
