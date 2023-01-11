@@ -1,8 +1,6 @@
 from tabnanny import verbose
 import cvxpy as cp
 import numpy as np
-import cplex
-import docplex
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 
