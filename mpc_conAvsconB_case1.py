@@ -452,7 +452,8 @@ for j in range(time):
             # E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
             ]
             t = t+1
-        cost_mpc += w3*cp.square(q_1[:,N] - desire*q_1star[j])
+        # cost_mpc += w3*cp.square(q_1[:,N] - desire*q_1star[j])
+        cost_mpc += w3*cp.square(q_1[:,N] - qf_1)
         # if j <= tm:
             # cost_mpc += w4*cp.square(q_2[0,N] - desire*q_2star_B[0,j])
             # constr_mpc += [q_2[0,N] >= q2_min]
