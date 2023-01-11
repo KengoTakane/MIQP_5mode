@@ -345,7 +345,7 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 # q_2:H(t), q_3:Enz(t) とする
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min       # 品質の初期値
-q1_min, q2_min = 900, H_min                # 品質の下限値
+q1_min, q2_min = 900, H_min                 # 品質の下限値
 desire = 0.9                                # 所望係数
 qf_1, qf_2 = q_10*desire, q_20*desire       # 品質の所望値
 w1, w2, w3, w4 = 0.5, 1, 900, 800           # 重み係数
