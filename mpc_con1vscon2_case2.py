@@ -312,7 +312,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 #=============================================================================#
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
-tm, tf = 7, 25
+tm, tf = 7, 15
 s, N = 5, 5
 time = tf+N
 
@@ -345,8 +345,8 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
 # q_2:H(t), q_3:Enz(t) とする
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min       # 品質の初期値
-q1_min, q2_min = 900, H_min                 # 品質の下限値
-desire = 0.95                                # 所望係数
+q1_min, q2_min = 950, H_min                 # 品質の下限値
+desire = 0.9                               # 所望係数
 qf_1, qf_2 = q_10*desire, q_20*desire       # 品質の所望値
 w1, w2, w3, w4 = 0.5, 1, 900, 800           # 重み係数
 
@@ -503,31 +503,31 @@ ax2 = fig2.add_subplot(111)
 ax3 = fig3.add_subplot(111)
 ax4 = fig4.add_subplot(111)
 
-ax1.plot(range(tf), q_1star[0:tf], label="$q_{1}(k)$(Controller A MPC)")
-ax1.plot(range(tf), q_1star_B[0:tf], label="$q_{1}(k)$(Controller B OC)")
+ax1.plot(range(tf), q_1star[0:tf], label="$q_{1}(k)$(MPC of A)")
+ax1.plot(range(tf), q_1star_B[0:tf], label="$q_{1}(k)$(MPC of B)")
 ax1.plot(range(tf), np.array([qf_1]*tf), label="$qf_{1}$")
 ax1.plot(range(tf), np.array([q1_min]*tf), label="$q1_{min}$")
 ax1.set_ylabel("quality 1$[g]$",fontsize=12)
 ax1.set_xlabel("$k[days]$",fontsize=12)
 ax1.legend(loc='best')
 
-ax2.plot(range(tm), q_2star[0,0:tm], label="$q_{2}(k)$(Controller AMPC)")
-ax2.plot(range(tm), q_2star_B[0,0:tm], label="$q_{2}(k)$(Controller B OC)")
+ax2.plot(range(tm), q_2star[0,0:tm], label="$q_{2}(k)$(MPC of A)")
+ax2.plot(range(tm), q_2star_B[0,0:tm], label="$q_{2}(k)$(MPC of B)")
 ax2.plot(range(tm), np.array([qf_2]*tm), label="$qf_{2}$")
 ax2.plot(range(tm), np.array([q2_min]*tm), label="$q2_{min}$")
 ax2.set_ylabel("quality 2$[{}^\circ]$",fontsize=12)
 ax2.set_xlabel("$k[days]$",fontsize=12)
 ax2.legend(loc='best')
 
-ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$(Controller A MPC)", marker="o")
-ax3.step(range(tf), Ta_star_B[0,0:tf], where='post', label="$T_{a}(k)$(Controller B OC)", marker="o")
+ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$(MPC of A)", marker="o")
+ax3.step(range(tf), Ta_star_B[0:tf], where='post', label="$T_{a}(k)$(MPC of B)", marker="o")
 ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
 ax3.set_ylabel("$T_a[K]$",fontsize=12)
 ax3.set_xlabel("$k[days]$",fontsize=12)
 ax3.legend(loc='best')
 
-ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$(Controller A MPC)", marker="o")
-ax4.step(range(tf), Rh_star_B[0,0:tf], where='post', label="$R_{h}(k)$(Controller B OC)", marker="o")
+ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$(MPC of A)", marker="o")
+ax4.step(range(tf), Rh_star_B[0:tf], where='post', label="$R_{h}(k)$(MPC of B)", marker="o")
 ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
 ax4.set_ylabel("$R_h[\%]$",fontsize=12)
 ax4.set_xlabel("$k[days]$",fontsize=12)
