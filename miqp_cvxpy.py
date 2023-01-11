@@ -1,10 +1,14 @@
+# 最適制御(OC)のシミュレーション結果．
+# グラフ化を行っている．
+# 得られた制御入力(Ta,Rh)を, 制御対象(非線形関数)に代入していない．
+# 制約条件を，行列を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用
+
 from tabnanny import verbose
 import cvxpy as cp
 import numpy as np
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 
-#制約条件を，行列を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
 
 # Problem data.
 # np.random.seed(3)
@@ -153,7 +157,7 @@ E6_bar = E6_bar[:, np.newaxis]
 
 
 # Construct the problem.
-tm, time = 10, 10
+tm, time = 5, 9
 tf = time
 
 Ta_min, Ta_max = 278, 298
