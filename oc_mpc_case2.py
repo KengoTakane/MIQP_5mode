@@ -306,7 +306,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 # Construct the problem.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
-s, time, N = 5, 25, 5
+s, time, N = 5, 15, 5
 tm, tf = 7, 10
 
 # トマトモデルのパラメータ
@@ -366,6 +366,7 @@ def fun1(t,X,T,Rh):
 #=========================== モデル予測制御（MPC） ===========================#
 #==========================================================================#
 #==========================================================================#
+print("MPC start !") 
 
 q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
 q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
@@ -409,7 +410,7 @@ for j in range(time):
         sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star[j]])
         q_2star[0,j+1], q_2star[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
         # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
-        print("j=",j)
+        # print("j=",j)
         # print("q_1star(j+1):",q_1star[j+1])
         # print("q_2star(j+1):",q_2star[:,j+1])
 print("MPC finished !")       
@@ -461,6 +462,7 @@ for j in range(time):
 #=========================== 最適制御（OC） ===========================#
 #====================================================================#
 #====================================================================#
+print("OC start !") 
 
 q_1oc, q_2oc = np.empty(tf+1), np.empty((2,tf+1))
 q_1oc[0], q_2oc[0,0], q_2oc[1,0] = q_10, q_20, q_30
