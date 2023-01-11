@@ -394,16 +394,16 @@ for j in range(time):
             # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
             cost_mpc += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
             constr_mpc += [q_1[:,t+1] == One@z_1[:,t],
-            q_2[:,t+1] == One_H@z_2[:,t],
+            # q_2[:,t+1] == One_H@z_2[:,t],
             E1@q_1[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z_1[:,t] + E5@delta_1[:,t] <= E6,
-            E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
+            # E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
             ]
             t = t+1
         cost_mpc += w3*cp.square(q_1star[j] - q_1[:,N])
-        if j <= tm:
-            cost_mpc += w4*cp.square(q_2star[0,j] - q_2[0,N])
-            constr_mpc += [q_2[0,N] >= q2_min]
-        constr_mpc += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
+        # if j <= tm:
+            # cost_mpc += w4*cp.square(q_2star[0,j] - q_2[0,N])
+            # constr_mpc += [q_2[0,N] >= q2_min]
+        constr_mpc += [q_1[:,0] == q_1star[j]]
         constr_mpc += [q_1[:,N] >= q1_min]
         constr_mpc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
         obj_mpc = cp.Minimize(cost_mpc)
@@ -417,13 +417,9 @@ for j in range(time):
         sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star[j],Rh_star[j]])
         # print("sol_q1.y:\n", sol_q1.y)
         q_1star[j+1] = sol_q1.y[0,1]
-        init_q2 = [q_2star[0,j]-H_plusinf, q_2star[1,j]]
-        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star[j]])
-        q_2star[0,j+1], q_2star[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
         # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
         # print("j=",j)
         # print("q_1star(j+1):",q_1star[j+1])
-        # print("q_2star(j+1):",q_2star[:,j+1])
 print("MPC of Controller_A finished !")
 
 
@@ -451,16 +447,16 @@ for j in range(time):
             # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
             cost_mpc += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
             constr_mpc += [q_1[:,t+1] == One@z_1[:,t],
-            q_2[:,t+1] == One_H@z_2[:,t],
+            # q_2[:,t+1] == One_H@z_2[:,t],
             E1@q_1[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z_1[:,t] + E5@delta_1[:,t] <= E6,
-            E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
+            # E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
             ]
             t = t+1
         cost_mpc += w3*cp.square(q_1[:,N] - desire*q_1star[j])
-        if j <= tm:
-            cost_mpc += w4*cp.square(q_2[0,N] - desire*q_2star_B[0,j])
-            constr_mpc += [q_2[0,N] >= q2_min]
-        constr_mpc += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
+        # if j <= tm:
+            # cost_mpc += w4*cp.square(q_2[0,N] - desire*q_2star_B[0,j])
+            # constr_mpc += [q_2[0,N] >= q2_min]
+        constr_mpc += [q_1[:,0] == q_1star[j]]
         constr_mpc += [q_1[:,N] >= q1_min]
         constr_mpc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
         obj_mpc = cp.Minimize(cost_mpc)
@@ -474,12 +470,8 @@ for j in range(time):
         sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star_B[j],Rh_star_B[j]])
         # print("sol_q1.y:\n", sol_q1.y)
         q_1star_B[j+1] = sol_q1.y[0,1]
-        init_q2 = [q_2star_B[0,j]-H_plusinf, q_2star_B[1,j]]
-        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star_B[j]])
-        q_2star_B[0,j+1], q_2star_B[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
         # print("j=",j)
         # print("q_1star(j+1):",q_1star_B[j+1])
-        # print("q_2star(j+1):",q_2star_B[:,j+1])
 print("MPC of Controller_B finished !")
 
 
@@ -495,11 +487,9 @@ print("MPC of Controller_B finished !")
 sns.set()
 sns.set_style("whitegrid")
 fig1 = plt.figure(figsize=(6,4))
-fig2 = plt.figure(figsize=(6,4))
 fig3 = plt.figure(figsize=(6,4))
 fig4 = plt.figure(figsize=(6,4))
 ax1 = fig1.add_subplot(111)
-ax2 = fig2.add_subplot(111)
 ax3 = fig3.add_subplot(111)
 ax4 = fig4.add_subplot(111)
 
@@ -511,13 +501,7 @@ ax1.set_ylabel("quality 1$[g]$",fontsize=12)
 ax1.set_xlabel("$k[days]$",fontsize=12)
 ax1.legend(loc='best')
 
-ax2.plot(range(tm), q_2star[0,0:tm], label="$q_{2}(k)$(Controller AMPC)")
-ax2.plot(range(tm), q_2star_B[0,0:tm], label="$q_{2}(k)$(Controller B OC)")
-ax2.plot(range(tm), np.array([qf_2]*tm), label="$qf_{2}$")
-ax2.plot(range(tm), np.array([q2_min]*tm), label="$q2_{min}$")
-ax2.set_ylabel("quality 2$[{}^\circ]$",fontsize=12)
-ax2.set_xlabel("$k[days]$",fontsize=12)
-ax2.legend(loc='best')
+
 
 ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$(Controller A MPC)", marker="o")
 ax3.step(range(tf), Ta_star_B[0,0:tf], where='post', label="$T_{a}(k)$(Controller B OC)", marker="o")
@@ -533,7 +517,6 @@ ax4.set_ylabel("$R_h[\%]$",fontsize=12)
 ax4.set_xlabel("$k[days]$",fontsize=12)
 ax4.legend(loc='best')
 fig1.tight_layout()
-fig2.tight_layout()
 fig3.tight_layout()
 fig4.tight_layout()
 # fig1.savefig("sim2_q1.png")
