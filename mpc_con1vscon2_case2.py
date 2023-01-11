@@ -1,4 +1,4 @@
-# 制御器1と制御器2の比較．
+# 制御器Aと制御器Bの比較．
 # モデル予測制御(MPC)のみ．
 # 品質は2種類．
 # 制約条件を，行列(E)を用いた1つの不等式で表記している．最適化問題を解く際にfor文を使用．
@@ -302,3 +302,238 @@ E3_H = np.concatenate([np.zeros((2,1)),-R_H,R_H,-R_H,R_H,np.zeros((20+2*delta_n+
 E4_H = np.concatenate([np.zeros((2+gamma_n+gamma_n+gamma_n+gamma_n+20,2*delta_n)),-I,I,-I,I], 0)
 E5_H = np.concatenate([Gamma1,np.zeros((gamma_n+gamma_n,delta_n+gamma_n)),-hmin_H_hat,-hmax_H_hat-eps_hat,Gamma2,gmin_H_hat,-gmax_H_hat,gmax_H_hat,-gmin_H_hat], 0)
 E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.zeros(2*delta_n),np.zeros(2*delta_n),gmax_H-D_H,-gmin_H+D_H], 0)
+
+
+
+#=============================================================================#
+#=============================================================================#
+#=========================== Construct the problem ===========================#
+#=============================================================================#
+#=============================================================================#
+
+# s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
+tm, tf = 7, 25
+s, N = 5, 5
+time = tf+N
+
+
+# トマトモデルのパラメータ
+H_0 = 62.9
+H_plusinf = 43.1
+H_minusinf = 124
+k_ref = 0.0019
+E_a = 170.604
+T_ref = 288.15
+Rg = 0.008314
+H_min, H_max = 42, H_0      # H_min:トマト(q2)の下限値
+Enz_min, Enz_max = 61, 80
+
+# ポテトモデルのパラメータ
+a = 1.00
+b = -1.59
+E = 0.045
+
+
+#   外部の温度と湿度
+Ta_min, Ta_max = 278, 298
+Rh_min, Rh_max = 30, 95
+T0 = np.random.uniform(Ta_min,Ta_max,(1,time))
+Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
+
+
+#### 品質の設定 ####
+# q_2:H(t), q_3:Enz(t) とする
+ta0, rh0 = 280, 50
+q_10, q_20, q_30 = 1100, H_0, Enz_min       # 品質の初期値
+q1_min, q2_min = 900, H_min                # 品質の下限値
+desire = 0.9                                # 所望係数
+qf_1, qf_2 = q_10*desire, q_20*desire       # 品質の所望値
+w1, w2, w3, w4 = 0.5, 1, 900, 800           # 重み係数
+
+
+def k_rate(T):
+    return k_ref*np.exp((E_a/Rg)*(1/T_ref-1/T))
+
+def H(t,T):
+    return H_plusinf + (H_minusinf-H_plusinf)/(1+np.exp((k_rate(T)*t)*(H_minusinf-H_plusinf))*(H_minusinf-H_0)/(H_0-H_plusinf))
+
+Enz_0 = Enz_min
+t_span = [0.0,time]
+t_eval = list(range(tf))
+
+def fun2(t,X,T):
+    H,Enz = X
+    return [-k_rate(T)*H*Enz, k_rate(T)*H*Enz]
+
+def fun1(t,X,T,Rh):
+    q = X
+    return ((-a * np.exp(b*Rh/100) * np.exp(-E/(Rg*T)))/1000) * q
+
+
+
+
+#=================================================================================================#
+#=================================================================================================#
+#=========================== 制御器Aのモデル予測制御（MPC of controller_A） ===========================#
+#=================================================================================================#
+#=================================================================================================#
+print("MPC of Controller_A start !") 
+
+q_1star, q_2star, Ta_star, Rh_star = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
+q_1star[0], q_2star[0,0], q_2star[1,0] = q_10, q_20, q_30
+for j in range(time):
+    if j <= tf:
+        cost_mpc = 0        #cost : コスト関数．最小化問題の目的関数
+        constr_mpc = []     #constr : 最小化問題の制約条件
+        t = 0
+        q_1, q_2 = cp.Variable((1,N+1)), cp.Variable((2,N+1))
+        Ta, Rh = cp.Variable((1,N)), cp.Variable((1,N))
+        z_1, z_2 = cp.Variable((delta_n, N)), cp.Variable((2*delta_n, N))
+        delta_1, delta_2 = cp.Variable((delta_n+gamma_n, N), integer=True), cp.Variable((delta_n+gamma_n, N), integer=True)
+        for k in range(j,j+N):
+            # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
+            cost_mpc += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
+            constr_mpc += [q_1[:,t+1] == One@z_1[:,t],
+            q_2[:,t+1] == One_H@z_2[:,t],
+            E1@q_1[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z_1[:,t] + E5@delta_1[:,t] <= E6,
+            E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
+            ]
+            t = t+1
+        cost_mpc += w3*cp.square(q_1star[j] - q_1[:,N])
+        if j <= tm:
+            cost_mpc += w4*cp.square(q_2star[0,j] - q_2[0,N])
+            constr_mpc += [q_2[0,N] >= q2_min]
+        constr_mpc += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
+        constr_mpc += [q_1[:,N] >= q1_min]
+        constr_mpc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+        obj_mpc = cp.Minimize(cost_mpc)
+        prob_mpc = cp.Problem(obj_mpc, constr_mpc)
+        prob_mpc.solve(solver=cp.CPLEX, verbose=False)
+        Ta_star[j] = Ta[:,0].value
+        Rh_star[j] = Rh[:,0].value
+        # q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
+        #   得られた制御入力(Ta,Rh)を，制御対象(非線形関数)に代入する．
+        init_q1 = [q_1star[j]]
+        sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star[j],Rh_star[j]])
+        # print("sol_q1.y:\n", sol_q1.y)
+        q_1star[j+1] = sol_q1.y[0,1]
+        init_q2 = [q_2star[0,j]-H_plusinf, q_2star[1,j]]
+        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star[j]])
+        q_2star[0,j+1], q_2star[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
+        # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
+        # print("j=",j)
+        # print("q_1star(j+1):",q_1star[j+1])
+        # print("q_2star(j+1):",q_2star[:,j+1])
+print("MPC of Controller_A finished !")
+
+
+
+
+#=================================================================================================#
+#=================================================================================================#
+#=========================== 制御器Bのモデル予測制御（MPC of controller_B） ===========================#
+#=================================================================================================#
+#=================================================================================================#
+print("MPC of Controller_B start !") 
+
+q_1star_B, q_2star_B, Ta_star_B, Rh_star_B = np.zeros(time+1), np.zeros((2,time+1)), np.zeros(time), np.zeros(time)
+q_1star_B[0], q_2star_B[0,0], q_2star_B[1,0] = q_10, q_20, q_30
+for j in range(time):
+    if j <= tf:
+        cost_mpc = 0        #cost : コスト関数．最小化問題の目的関数
+        constr_mpc = []     #constr : 最小化問題の制約条件
+        t = 0
+        q_1, q_2 = cp.Variable((1,N+1)), cp.Variable((2,N+1))
+        Ta, Rh = cp.Variable((1,N)), cp.Variable((1,N))
+        z_1, z_2 = cp.Variable((delta_n, N)), cp.Variable((2*delta_n, N))
+        delta_1, delta_2 = cp.Variable((delta_n+gamma_n, N), integer=True), cp.Variable((delta_n+gamma_n, N), integer=True)
+        for k in range(j,j+N):
+            # q, Ta, Rh = cp.Variable((1,j+N+1)), cp.Variable((1,j+N)), cp.Variable((1,j+N))
+            cost_mpc += w1*cp.square(Ta[:,t]-T0[:,k]) + w2*cp.square(Rh[:,t]-Rh0[:,k])
+            constr_mpc += [q_1[:,t+1] == One@z_1[:,t],
+            q_2[:,t+1] == One_H@z_2[:,t],
+            E1@q_1[:,t] + E2@Ta[:,t] + E3@Rh[:,t] + E4@z_1[:,t] + E5@delta_1[:,t] <= E6,
+            E1_H@q_2[:,t] + E3_H@Ta[:,t] + E4_H@z_2[:,t] + E5_H@delta_2[:,t] <= E6_H
+            ]
+            t = t+1
+        cost_mpc += w3*cp.square(q_1star[j] - q_1[:,N])
+        if j <= tm:
+            cost_mpc += w4*cp.square(q_2star_B[0,j] - q_2[0,N])
+            constr_mpc += [q_2[0,N] >= q2_min]
+        constr_mpc += [q_1[:,0] == q_1star[j], q_2[0,0] == q_2star[0,j], q_2[1,0] == q_2star[1,j]]
+        constr_mpc += [q_1[:,N] >= q1_min]
+        constr_mpc += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
+        obj_mpc = cp.Minimize(cost_mpc)
+        prob_mpc = cp.Problem(obj_mpc, constr_mpc)
+        prob_mpc.solve(solver=cp.CPLEX, verbose=False)
+        Ta_star_B[j] = Ta[:,0].value
+        Rh_star_B[j] = Rh[:,0].value
+        # q_1star[j+1], q_2star[:,j+1] = q_1[:,1].value, q_2[:,1].value
+        #   得られた制御入力(Ta,Rh)を，制御対象(非線形関数)に代入する．
+        init_q1 = [q_1star_B[j]]
+        sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star_B[j],Rh_star_B[j]])
+        # print("sol_q1.y:\n", sol_q1.y)
+        q_1star_B[j+1] = sol_q1.y[0,1]
+        init_q2 = [q_2star_B[0,j]-H_plusinf, q_2star_B[1,j]]
+        sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star_B[j]])
+        q_2star_B[0,j+1], q_2star_B[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
+        # print("j=",j)
+        # print("q_1star(j+1):",q_1star_B[j+1])
+        # print("q_2star(j+1):",q_2star_B[:,j+1])
+print("MPC of Controller_B finished !")
+
+
+
+
+
+#=====================================================================#
+#=====================================================================#
+#=========================== Plot results. ===========================#
+#=====================================================================#
+#=====================================================================#
+
+sns.set()
+sns.set_style("whitegrid")
+fig1 = plt.figure(figsize=(6,4))
+fig2 = plt.figure(figsize=(6,4))
+fig3 = plt.figure(figsize=(6,4))
+fig4 = plt.figure(figsize=(6,4))
+ax1 = fig1.add_subplot(111)
+ax2 = fig2.add_subplot(111)
+ax3 = fig3.add_subplot(111)
+ax4 = fig4.add_subplot(111)
+
+ax1.plot(range(tf), q_1star[0:tf], label="$q_{1}(k)$(Controller A MPC)")
+ax1.plot(range(tf), q_1star_B[0:tf], label="$q_{1}(k)$(Controller B OC)")
+ax1.set_ylabel("quality 1$[g]$",fontsize=12)
+ax1.set_xlabel("$k[days]$",fontsize=12)
+ax1.legend(loc='best')
+
+ax2.plot(range(tm), q_2star[0,0:tm], label="$q_{2}(k)$(Controller AMPC)")
+ax2.plot(range(tm), q_2star_B[0,0:tm], label="$q_{2}(k)$(Controller B OC)")
+ax2.set_ylabel("quality 2$[{}^\circ]$",fontsize=12)
+ax2.set_xlabel("$k[days]$",fontsize=12)
+ax2.legend(loc='best')
+
+ax3.step(range(tf), Ta_star[0:tf], where='post', label="$T_{a}(k)$(Controller A MPC)", marker="o")
+ax3.step(range(tf), Ta_star_B[0,0:tf].value, where='post', label="$T_{a}(k)$(Controller B OC)", marker="o")
+ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
+ax3.set_ylabel("$T_a[K]$",fontsize=12)
+ax3.set_xlabel("$k[days]$",fontsize=12)
+ax3.legend(loc='best')
+
+ax4.step(range(tf), Rh_star[0:tf], where='post', label="$R_{h}(k)$(Controller A MPC)", marker="o")
+ax4.step(range(tf), Rh_star_B[0,0:tf].value, where='post', label="$R_{h}(k)$(Controller B OC)", marker="o")
+ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
+ax4.set_ylabel("$R_h[\%]$",fontsize=12)
+ax4.set_xlabel("$k[days]$",fontsize=12)
+ax4.legend(loc='best')
+fig1.tight_layout()
+fig2.tight_layout()
+fig3.tight_layout()
+fig4.tight_layout()
+# fig1.savefig("sim2_q1.png")
+# fig2.savefig("sim2_q2.png")
+# fig3.savefig("sim2_imput1.png")
+# fig4.savefig("sim2_imput2.png")
+plt.show()
