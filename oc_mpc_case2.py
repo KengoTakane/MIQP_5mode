@@ -306,8 +306,10 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 # Construct the problem.
 
 # s：モードの数，time：制御を行う最終時刻，N：予測ステップ数
-s, time, N = 5, 15, 5
-tm, tf = 7, 10
+tm, tf = 7, 25
+s, N = 5, 5
+time = tf+N
+
 
 # トマトモデルのパラメータ
 H_0 = 62.9
