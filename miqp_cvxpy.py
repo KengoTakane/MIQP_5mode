@@ -10,16 +10,13 @@ import matplotlib.pyplot as plt
 # np.random.seed(3)
 s, time = 5, 10
 delta_n, gamma_n = 5, 10
-qf = 1000
-Ta_max = 298
-Ta_min = 278
-Rh_max = 95
-Rh_min = 30
-# T0 = np.random.randint(Ta_min,Ta_max,(time,1))
-# Rh0 = np.random.randint(Rh_min,Rh_max,(time,1))
-T0 = np.random.randint(Ta_min,Ta_max,(1,time))
-Rh0 = np.random.randint(Rh_min,Rh_max,(1,time))
+delta_t = 1
 
+#==================================================================================#
+#==================================================================================#
+#=========================== potatoのMLDモデルのパラメータ ===========================#
+#==================================================================================#
+#==================================================================================#
 
 A = np.array([[-4.21270271e-04+1], [-2.36178784e-04+1], [-3.22164500e-04+1], [-2.52650737e-04+1], [-5.55708636e-04+1]])
 B = np.array([[-4.84453301e-05], [-3.14845920e-05], [-5.36849855e-05], [-1.67910305e-05], [1.35079377e-05]])
@@ -156,6 +153,16 @@ E6_bar = E6_bar[:, np.newaxis]
 
 
 # Construct the problem.
+tm, time = 10, 17
+tf = time
+
+Ta_min, Ta_max = 278, 298
+Rh_min, Rh_max = 30, 95
+qf = 1000
+
+T0 = np.random.uniform(Ta_min,Ta_max,(1,time))
+Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time))
+
 q, Ta, Rh = cp.Variable((1,time+1)), cp.Variable((1,time)), cp.Variable((1,time))
 z = cp.Variable((delta_n, time))
 delta = cp.Variable((delta_n+gamma_n, time), integer=True)
@@ -170,7 +177,7 @@ for k in range(time):
     E1@q[:,k] + E2@Ta[:,k] + E3@Rh[:,k] + E4@z[:,k] + E5@delta[:,k] <= E6
     ]
 cost += w3*cp.square(q0 - q[:,time])
-constr += [q[:,0] == q0]
+constr += [q[:,0] == q0, q[:,time] >= qf]
 constr += [Ta <= Ta_max, Ta >= Ta_min, Rh <= Rh_max, Rh >= Rh_min]
 
 
