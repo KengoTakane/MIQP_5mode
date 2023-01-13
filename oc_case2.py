@@ -412,10 +412,12 @@ ax4 = fig4.add_subplot(111)
 ax1.plot(range(tf),q_1[0,0:tf].value,label="$q_{1}(k)$(OC of A)")
 ax1.set_ylabel("quality 1$[g]$",fontsize=12)
 ax1.set_xlabel("$k[days]$",fontsize=12)
+ax1.legend(loc='best')
 
 ax2.plot(range(tm),q_2[0,0:tm].value,label="$q_{2}(k)$(OC of A)")
 ax2.set_ylabel("quality 2$[{}^\circ]$",fontsize=12)
 ax2.set_xlabel("$k[days]$",fontsize=12)
+ax2.legend(loc='best')
 
 ax3.step(range(tf), Ta[0,0:tf].value, where='post', label="$T_{a}(k)$(OC of A)", marker="o")
 ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
