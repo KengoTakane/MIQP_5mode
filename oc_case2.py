@@ -353,6 +353,7 @@ w1, w2, w3, w4 = 0.5, 0.5, 200, 200        #重み係数
 #====================================================================#
 #====================================================================#
 
+print("OC of Controller_A start !") 
 
 cost = 0       #cost : コスト関数．最小化問題の目的関数
 constr = []     #constr : 最小化問題の制約条件
@@ -373,6 +374,7 @@ print(cp.installed_solvers())
 objective = cp.Minimize(cost)
 prob = cp.Problem(objective, constr)
 prob.solve(solver=cp.CPLEX, verbose=True)
+print("OC of Controller_A finished !") 
 print("Status: ", prob.status)
 print("The optimal value is\n", prob.value)
 # print('q_1:\n', q_1.value)
@@ -407,21 +409,21 @@ ax2 = fig2.add_subplot(111)
 ax3 = fig3.add_subplot(111)
 ax4 = fig4.add_subplot(111)
 
-ax1.plot(range(tf),q_1[0,0:tf].value)
+ax1.plot(range(tf),q_1[0,0:tf].value,label="$q_{1}(k)$(OC of A)")
 ax1.set_ylabel("quality 1$[g]$",fontsize=12)
 ax1.set_xlabel("$k[days]$",fontsize=12)
 
-ax2.plot(range(tm),q_2[0,0:tm].value)
+ax2.plot(range(tm),q_2[0,0:tm].value,label="$q_{2}(k)$(OC of A)")
 ax2.set_ylabel("quality 2$[{}^\circ]$",fontsize=12)
 ax2.set_xlabel("$k[days]$",fontsize=12)
 
-ax3.step(range(tf), Ta[0,0:tf].value, where='post', label="$T_{a}(k)$", marker="o")
+ax3.step(range(tf), Ta[0,0:tf].value, where='post', label="$T_{a}(k)$(OC of A)", marker="o")
 ax3.plot(range(tf), T0[0,0:tf], label="$T_{aout}(k)$", linestyle="dashed")
 ax3.set_ylabel("$T_a[K]$",fontsize=12)
 ax3.set_xlabel("$k[days]$",fontsize=12)
 ax3.legend(loc='best')
 
-ax4.step(range(tf), Rh[0,0:tf].value, where='post', label="$R_{h}(k)$", marker="o")
+ax4.step(range(tf), Rh[0,0:tf].value, where='post', label="$R_{h}(k)$(OC of A)", marker="o")
 ax4.plot(range(tf), Rh0[0,0:tf], label="$R_{hout}(k)$", linestyle="dashed")
 ax4.set_ylabel("$R_h[\%]$",fontsize=12)
 ax4.set_xlabel("$k[days]$",fontsize=12)
