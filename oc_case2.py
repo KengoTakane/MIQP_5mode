@@ -325,7 +325,8 @@ E_a = 170.604
 T_ref = 288.15
 Rg = 0.008314
 
-Ta_min, Ta_max = 278, 298
+abs_T = 273.15
+Ta_min, Ta_max = 5+abs_T, 25+abs_T
 Rh_min, Rh_max = 30, 95
 H_min, H_max = 42, H_0
 Enz_min, Enz_max = 61, 80
