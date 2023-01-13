@@ -342,7 +342,7 @@ z_1, z_2 = cp.Variable((delta_n, time)), cp.Variable((2*delta_n, time))
 delta_1, delta_2 = cp.Variable((delta_n+gamma_n, time), integer=True), cp.Variable((delta_n+gamma_n, time), integer=True)
 ta0, rh0 = 280, 50
 q_10, q_20, q_30 = 1100, H_0, Enz_min   #品質の初期値
-w1, w2, w3, w4 = 5, 5, 80, 100        #重み係数
+w1, w2, w3, w4 = 0.5, 0.5, 200, 200        #重み係数
 
 
 
