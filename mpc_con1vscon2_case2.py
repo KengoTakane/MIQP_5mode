@@ -145,7 +145,7 @@ for j in range(time):
         sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star[j]])
         q_2star[0,j+1], q_2star[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
         # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
-        # print("j=",j)
+        print("j=",j)
         # print("q_1star(j+1):",q_1star[j+1])
         # print("q_2star(j+1):",q_2star[:,j+1])
 print("MPC of A finished !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -199,7 +199,7 @@ for j in range(time):
         init_q2 = [q_2star_B[0,j]-H_plusinf, q_2star_B[1,j]]
         sol_q2 = solve_ivp(fun2,t_span,init_q2,method='RK45',t_eval=t_eval,args=[Ta_star_B[j]])
         q_2star_B[0,j+1], q_2star_B[1,j+1] = sol_q2.y[0,1]+H_plusinf, sol_q2.y[1,1]
-        # print("j=",j)
+        print("j=",j)
         # print("q_1star(j+1):",q_1star_B[j+1])
         # print("q_2star(j+1):",q_2star_B[:,j+1])
 print("MPC of B finished !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
