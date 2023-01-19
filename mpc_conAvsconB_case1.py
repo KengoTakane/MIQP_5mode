@@ -65,7 +65,7 @@ Rh0 = np.random.uniform(Rh_min,Rh_max,(1,time)) # 外部湿度
 ta0, rh0 = 280, 50  # 制御入力の初期値
 q_10, q_20, q_30 = 1100, H_0-H_plusinf, Enz_0   # 品質の初期値, q_2:H(t), q_3:Enz(t)
 q1_min, q2_min = 1000, H_min      #　品質の下限値
-w1, w2, w3, w4 = 0.5, 0.5, 900, 800   # 重み係数. w1:Ta, w2:Rh, w3:q1, w4:q2
+w1, w2, w3, w4 = 0.5, 0.5, 900, 900   # 重み係数. w1:Ta, w2:Rh, w3:q1, w4:q2
 
 def k_rate(T):      #速度定数式
     k_ref = 0.0019
