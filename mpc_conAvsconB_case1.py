@@ -139,7 +139,7 @@ for j in range(time):
         # print("sol_q1.y:\n", sol_q1.y)
         q_1star[j+1] = sol_q1.y[0,1]
         # q_1star[j+1] = fun(Ta_star[j],Rh_star[j],q_star[j])
-        # print("j=",j)
+        print("j=",j)
         # print("q_1star(j+1):",q_1star[j+1])
 print("MPC of A finished !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 #======================= MPC of Controller A ================================================================#
@@ -191,7 +191,7 @@ for j in range(time):
         sol_q1 = solve_ivp(fun1,t_span,init_q1,method='RK45',t_eval=t_eval,args=[Ta_star_B[j],Rh_star_B[j]])
         # print("sol_q1.y:\n", sol_q1.y)
         q_1star_B[j+1] = sol_q1.y[0,1]
-        # print("j=",j)
+        print("j=",j)
         # print("q_1star(j+1):",q_1star_B[j+1])
 print("MPC of B finished !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 #======================= MPC of Controller B ================================================================#
