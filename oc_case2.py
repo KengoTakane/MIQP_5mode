@@ -313,7 +313,7 @@ E6_H = np.concatenate([Eps1,-hmin_H+S_H,hmax_H-S_H,-hmin_H+S_H,-eps-S_H,Eps2,np.
 
 
 # Construct the problem.
-tm, time = 10, 17
+tm, time = 10, 15
 tf = time
 
 # トマトモデルのパラメータ
